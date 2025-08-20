@@ -13,8 +13,6 @@ import {
   Edit,
   Trash2,
   Eye,
-  CalendarDays,
-  CalendarRange,
   X,
   Search,
 } from "lucide-react";
@@ -148,8 +146,6 @@ const packages = [
   "Premium Wedding",
   "Luxury Wedding",
 ];
-
-type FilterType = "single" | "range" | "week" | "month";
 
 interface NewAppointment {
   couple: string;

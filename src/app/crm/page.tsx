@@ -1,35 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Search, Filter } from "lucide-react";
-
-// Import refactored components and utilities
-// import { CustomerStats } from "./components/CustomerStats";
-// import { CustomerTable } from "./components/CustomerTable";
-// import { AddCustomerDialog } from "./components/AddCustomerDialog";
-// import { CustomerDialog } from "./components/CustomerDialog";
-// import { EditCustomerDialog } from "./components/EditCustomerDialog";
-// import { MoveToContractDialog } from "./components/MoveToContractDialog";
-// import { DeleteCustomerDialog } from "./components/DeleteCustomerDialog";
-// import { useContracts } from "./contracts/ContractsContext";
-
-// const prospectingStatuses = [
-//   {
-//     id: "interested",
-//     label: "Quan tâm",
-//     color: "bg-green-50 text-green-700 border-green-200",
-//   },
-//   {
-//     id: "potential",
-//     label: "Tiềm năng",
-//     color: "bg-yellow-50 text-yellow-700 border-yellow-200",
-//   },
-//   {
-//     id: "hot",
-//     label: "Chốt nóng",
-//     color: "bg-red-50 text-red-700 border-red-200",
-//   },
-// ];
+import { Search, Filter } from "lucide-react";
+import CustomerTable from "./components/tables/CustomerTable";
 
 // Mock customer data - only prospecting customers now
 const prospectingCustomers = [
@@ -177,6 +150,24 @@ const prospectingCustomers = [
         type: "note",
       },
     ],
+  },
+];
+
+export const prospectingStatuses = [
+  {
+    id: "interested",
+    label: "Quan tâm",
+    color: "bg-green-50 text-green-700 border-green-200",
+  },
+  {
+    id: "potential",
+    label: "Tiềm năng",
+    color: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  },
+  {
+    id: "hot",
+    label: "Chốt nóng",
+    color: "bg-red-50 text-red-700 border-red-200",
   },
 ];
 
@@ -408,30 +399,68 @@ export default function CRMPage() {
       </div>
 
       {/* Statistics */}
-      {/* <CustomerStats
-        stats={getCustomerStats()}
-        selectedTab="prospecting"
-        onStatClick={handleStatClick}
-        activeStatusFilter={statusFilter === "all" ? undefined : statusFilter}
-      /> */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {getCustomerStats().map((stat: any) => {
+            const isActive = statusFilter === stat.id;
+            const isClickable = !!handleStatClick;
+
+            return (
+              <div
+                key={stat.id}
+                className={`text-center p-2 sm:p-3 rounded-lg border backdrop-blur-sm transition-all duration-200 ${
+                  isClickable ? "cursor-pointer touch-manipulation" : ""
+                } ${
+                  isActive
+                    ? "bg-blue-50 border-blue-200 ring-2 ring-blue-200/50 transform scale-[1.02]"
+                    : "bg-white/50 border-stone-200/60 hover:bg-white/70 hover:border-stone-300/70"
+                }`}
+                onClick={() => handleStatClick?.(stat.id)}
+                title={
+                  isClickable ? `Click để lọc theo ${stat.label}` : undefined
+                }
+              >
+                <p
+                  className={`text-lg sm:text-xl font-bold transition-colors ${
+                    isActive ? "text-blue-700" : "text-slate-900"
+                  }`}
+                >
+                  {stat.count}
+                </p>
+                <p
+                  className={`text-xs truncate transition-colors ${
+                    isActive ? "text-blue-600" : "text-slate-600"
+                  }`}
+                >
+                  {stat.label}
+                </p>
+                {isActive && (
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto mt-1 animate-pulse"></div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Search and Filter */}
-      {/* <Card className="glass-card">
-        <CardContent className="mobile-card">
+      <div className="glass-card">
+        <div className="mobile-card">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
-                <Input
-                  placeholder="Tìm kiếm khách hàng tiềm năng..."
+              <div className="relative flex-2 min-w-[150px]">
+                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#94a3b8] group-focus:text-black" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm bot, tài khoản hoặc chiến lược..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-compact"
+                  className="flex h-10 w-full rounded-md border border-slate-300 px-10 py-5.5 text-md placeholder:text-[#94a3b8] outline-none bg-transparent hover:border-slate-400 focus:border-slate-400 transition-colors"
                 />
               </div>
             </div>
             <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              {/* <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-[180px] search-compact touch-manipulation">
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Tất cả trạng thái" />
@@ -444,27 +473,25 @@ export default function CRMPage() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select> */}
 
               {statusFilter !== "all" && (
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
                   onClick={() => setStatusFilter("all")}
                   className="px-3 h-10 text-xs border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-800 touch-manipulation whitespace-nowrap"
                   title="Xóa bộ lọc"
                 >
                   Xóa lọc
-                </Button>
+                </button>
               )}
             </div>
           </div>
-        </CardContent>
-      </Card> */}
+        </div>
+      </div>
 
       {/* Customer List */}
-      {/* <Card className="glass-card">
-        <CardContent className="mobile-card p-0 overflow-hidden">
+      <div className="glass-card">
+        <div className="mobile-card p-0 overflow-hidden">
           <div className="w-full overflow-x-hidden">
             <CustomerTable
               customers={filteredCustomers}
@@ -475,8 +502,8 @@ export default function CRMPage() {
               selectedTab="prospecting"
             />
           </div>
-        </CardContent>
-      </Card> */}
+        </div>
+      </div>
 
       {/* Customer Detail Dialog */}
       {/* <CustomerDialog
