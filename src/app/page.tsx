@@ -13,8 +13,10 @@ import {
   Cpu,
   Building2,
   Plus,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const mockAppointments = [
   {
@@ -89,73 +91,78 @@ const mockQuickActions = [
 ];
 
 export default function Home() {
-  const [currentPage, setCurrentPage] = useState("dashboard");
+  const currentDate = new Date();
+  const timeString = currentDate.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const dateString = currentDate.toLocaleDateString("vi-VN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
   return (
     <div className="mobile-padding mobile-spacing pt-4">
       {/* Creative Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border border-blue-100/50 mb-8">
-        {/* Background Decorations */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-blue-200/20 to-transparent rounded-full -translate-y-32 translate-x-32"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-purple-200/20 to-transparent rounded-full translate-y-24 -translate-x-24"></div>
+      <div className="relative mb-8">
+        {/* Background with gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-2xl"></div>
 
-        <div className="relative z-10 p-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 sm:gap-0">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Camera className="w-6 h-6 text-white" />
+        {/* Decorative elements */}
+        <div className="absolute top-6 right-6 w-32 h-32 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-xl blur-3xl"></div>
+        <div className="absolute bottom-6 left-6 w-24 h-24 bg-gradient-to-br from-pink-200/20 to-orange-200/20 rounded-xl blur-2xl"></div>
+
+        <div className="flex flex-col gap-6 relative border border-blue-200/30 shadow-xl bg-white/80 backdrop-blur-sm rounded-xl">
+          <div className="p-8">
+            {/* Header Section */}
+            <div className="flex flex-col lg:flex-row gap-6 items-start justify-between mb-6">
+              <div className="flex items-center gap-6">
+                <div className="relative">
+                  <div className="h-15 w-15 md:h-20 md:w-20 rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-2xl ring-2 ring-blue-100">
+                    <Image
+                      width={100}
+                      height={100}
+                      src="/images/plannie-logo.jpg"
+                      alt="Avatar"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">✨</span>
-                  <span className="px-3 py-1 bg-white/60 backdrop-blur-sm rounded-full text-xs font-medium text-blue-700 border border-blue-200/50">
-                    Chào buổi sáng!
-                  </span>
+
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+                      Chào buổi sáng, Thu Hà!
+                    </h1>
+                    <Sparkles className="w-6 h-6 text-yellow-500" />
+                  </div>
+
+                  <p className="text-gray-600 mb-4 max-w-md leading-relaxed">
+                    Chào mừng bạn trở lại với{" "}
+                    <span className="font-semibold text-blue-600">
+                      Plannie Studio
+                    </span>
+                    . Hôm nay sẽ là một ngày tuyệt vời với nhiều cơ hội mới! ✨
+                  </p>
+
+                  <div className="flex items-center gap-6 text-sm">
+                    <div className="flex items-center gap-2 text-gray-500 bg-white/50 px-3 py-2 rounded-full">
+                      <Calendar className="w-4 h-4 text-blue-500" />
+                      <span className="font-medium">{dateString}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
-                Studio của bạn hôm nay
-              </h1>
-
-              <p className="text-slate-600 text-lg font-medium max-w-lg leading-relaxed">
-                Sẵn sàng tạo ra những khoảnh khắc kỳ diệu cho các cặp đôi
-              </p>
-
-              {/* Quick Stats */}
-              <div className="flex items-center gap-6 mt-4 pt-4 border-t border-white/50">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-slate-600 font-medium">
-                    Studio sẵn sàng
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm text-slate-600 font-medium">
-                    Thời tiết đẹp ☀️
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-slate-600 font-medium">
-                    Thiết bị hoạt động tốt
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3">
               <Link href="/appointments">
-                <button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 group">
+                <button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 group text-sm md:text-base">
                   <Camera className="w-5 h-5 group-hover:rotate-12 transition-transform duration-200" />
                   Tạo buổi chụp mới
-                </button>
-              </Link>
-
-              <Link href="/dashboard/analytics">
-                <button className="bg-white/70 backdrop-blur-sm border border-white/80 text-slate-700 px-6 py-2 rounded-lg font-medium hover:bg-white/90 transition-all duration-200 flex items-center gap-2 text-sm">
-                  <Building2 className="w-4 h-4" />
-                  Xem báo cáo
                 </button>
               </Link>
             </div>
@@ -164,7 +171,7 @@ export default function Home() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid mobile-grid gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link href="/appointments">
           <div className="glass-card border-blue-200/30 hover-lift hover-glow touch-manipulation cursor-pointer rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
             <div className="mobile-card p-6">
@@ -186,9 +193,7 @@ export default function Home() {
                 <Users className="h-8 w-8 text-emerald-600" />
                 <div>
                   <p className="text-2xl font-bold text-slate-900">8</p>
-                  <p className="text-sm text-slate-600">
-                    Đơn hàng đang thực hiện
-                  </p>
+                  <p className="text-sm text-slate-600">Đơn đang thực hiện</p>
                 </div>
               </div>
             </div>
@@ -212,7 +217,7 @@ export default function Home() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Today's Appointments */}
-        <div className="lg:col-span-2 glass-card hover-lift hover-glow rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
+        <div className="lg:col-span-2 glass-card rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
           <div className="flex flex-row items-center justify-between p-6 pb-0">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
               <Clock className="w-5 h-5 text-blue-600" />
@@ -232,12 +237,12 @@ export default function Home() {
                   href={`/appointments?id=${appointment.id}`}
                   className="block"
                 >
-                  <div className="flex items-center justify-between p-4 rounded-lg glass border-slate-200/50 hover-lift hover-glow touch-manipulation cursor-pointer border bg-white/30 backdrop-blur-sm transition-all duration-200">
-                    <div className="flex items-center space-x-4">
+                  <div className="flex items-center justify-between p-3 md:p-4 rounded-lg glass border-slate-200/50 hover-lift hover-glow touch-manipulation cursor-pointer border bg-white/30 backdrop-blur-sm transition-all duration-200">
+                    <div className="flex items-center space-x-2 md:space-x-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center modern-shadow shadow-lg">
                         <Heart className="w-6 h-6 text-white" />
                       </div>
-                      <div>
+                      <div className="">
                         <p className="font-semibold text-slate-800">
                           {appointment.couple}
                         </p>
@@ -248,7 +253,7 @@ export default function Home() {
                       </div>
                     </div>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      className={`px-2 py-1 rounded-full text-xs font-medium text-center w-[70px] sm:w-auto ${
                         appointment.status === "confirmed"
                           ? "bg-blue-100 text-blue-800"
                           : "bg-slate-100 text-slate-800"
@@ -266,7 +271,7 @@ export default function Home() {
         </div>
 
         {/* Recent Notifications */}
-        <div className="glass-card hover-lift hover-glow rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
+        <div className="glass-card rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
           <div className="p-6 pb-0">
             <h3 className="text-lg font-semibold text-slate-800">
               Thông báo gần đây
@@ -302,7 +307,7 @@ export default function Home() {
       </div>
 
       {/* Quick Actions */}
-      <div className="glass-card hover-lift hover-glow rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
+      <div className="glass-card rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
         <div className="p-6 pb-0">
           <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
             <Building2 className="w-5 h-5 text-blue-600" />
@@ -339,7 +344,7 @@ export default function Home() {
 
       {/* Studio Resources */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card hover-lift hover-glow rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
+        <div className="glass-card rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
           <div className="mobile-card p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -363,7 +368,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="glass-card hover-lift hover-glow rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
+        <div className="glass-card rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
           <div className="mobile-card p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -388,7 +393,7 @@ export default function Home() {
         </div>
 
         <Link href="/staff">
-          <div className="glass-card hover-lift hover-glow touch-manipulation cursor-pointer rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
+          <div className="glass-card touch-manipulation cursor-pointer rounded-lg border bg-white/60 backdrop-blur-sm shadow-sm transition-all duration-200">
             <div className="mobile-card p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">

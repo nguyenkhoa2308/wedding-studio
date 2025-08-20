@@ -15,45 +15,24 @@ import {
   Info,
   Clock,
 } from "lucide-react";
+import { MenuItem } from "@/types";
 
 interface SideBarProps {
   isMobile: boolean;
   sidebarOpen: boolean;
+  menuItems: MenuItem[];
 }
 
-const menuItems = [
-  { name: "Dashboard", key: "dashboard", icon: Home, path: "/" },
-  {
-    name: "Lịch hẹn",
-    key: "appointments",
-    icon: Calendar,
-    path: "/appointments",
-  },
-  { name: "Lịch biểu", key: "schedule", icon: Clock, path: "/schedule" },
-  { name: "Hợp đồng", key: "contracts", icon: FileText, path: "/contracts" },
-  { name: "Kế toán", key: "accounting", icon: Calculator, path: "/accounting" },
-  { name: "Retouch", key: "retouch", icon: Sparkles, path: "/retouch" },
-  { name: "Nhân viên", key: "staff", icon: Users, path: "/staff" },
-  { name: "CRM", key: "crm", icon: MessageCircle, path: "/crm" },
-  {
-    name: "Thông tin Studio",
-    key: "studio-info",
-    icon: Info,
-    path: "/info",
-  },
-  { name: "Cài đặt", key: "settings", icon: Settings, path: "/settings" },
-];
-
-// Hàm để lấy active key từ pathname
-function getActiveKeyFromPath(pathname: string): string {
-  const item = menuItems.find((item) => item.path === pathname);
+// Lấy active key từ pathname
+function getActiveKeyFromPath(menuItems: MenuItem[], pathname: string): string {
+  const item = menuItems.find((i) => i.path === pathname);
   return item?.key || "dashboard";
 }
 
 // Sidebar mở rộng
-function ExpandedSidebar() {
+function ExpandedSidebar({ menuItems }: { menuItems: MenuItem[] }) {
   const pathname = usePathname();
-  const activeKey = getActiveKeyFromPath(pathname);
+  const activeKey = getActiveKeyFromPath(menuItems, pathname);
 
   return (
     <aside
@@ -100,13 +79,13 @@ function ExpandedSidebar() {
 }
 
 // Sidebar thu gọn
-function CollapsedSidebar() {
+function CollapsedSidebar({ menuItems }: { menuItems: MenuItem[] }) {
   const pathname = usePathname();
-  const activeKey = getActiveKeyFromPath(pathname);
+  const activeKey = getActiveKeyFromPath(menuItems, pathname);
 
   return (
     <aside
-      className="fixed top-14.5 left-[0.7px] bottom-0 z-40 w-24 border-r border-gray-200 bg-white p-2"
+      className="fixed top-14 left-[0.7px] bottom-0 z-40 w-24 border-r border-gray-200 bg-white p-2"
       aria-label="Sidebar"
     >
       <nav className="h-full py-2">
@@ -124,7 +103,7 @@ function CollapsedSidebar() {
                   aria-label={item.name}
                   title={item.name}
                 >
-                  {/* NỀN: phủ toàn bộ nút */}
+                  {/* NỀN */}
                   <div
                     className={[
                       "pointer-events-none absolute inset-0 rounded-2xl transition-colors",
@@ -134,7 +113,7 @@ function CollapsedSidebar() {
                     ].join(" ")}
                   />
 
-                  {/* NỘI DUNG: icon + label xếp dọc, luôn nằm trên nền */}
+                  {/* NỘI DUNG */}
                   <div className="relative z-10 flex flex-col items-center gap-2">
                     <Icon className="w-7 h-7 transition-all" />
                     <span
@@ -158,10 +137,15 @@ function CollapsedSidebar() {
   );
 }
 
-export function SideBar({ isMobile, sidebarOpen }: SideBarProps) {
+export function SideBar({ isMobile, sidebarOpen, menuItems }: SideBarProps) {
   return (
     <div className="bg-gradient-to-br from-slate-50 via-white to-gray-50">
-      {!isMobile && (sidebarOpen ? <ExpandedSidebar /> : <CollapsedSidebar />)}
+      {!isMobile &&
+        (sidebarOpen ? (
+          <ExpandedSidebar menuItems={menuItems} />
+        ) : (
+          <CollapsedSidebar menuItems={menuItems} />
+        ))}
     </div>
   );
 }
