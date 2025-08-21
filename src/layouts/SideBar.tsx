@@ -3,18 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Settings,
-  FileText,
-  Home,
-  Calendar,
-  Calculator,
-  Sparkles,
-  Users,
-  MessageCircle,
-  Info,
-  Clock,
-} from "lucide-react";
 import { MenuItem } from "@/types";
 
 interface SideBarProps {
@@ -62,7 +50,7 @@ function ExpandedSidebar({ menuItems }: { menuItems: MenuItem[] }) {
                   />
                   {/* Icon */}
                   <div className="absolute left-0 top-0 w-20 h-full flex items-center justify-center z-10">
-                    <Icon className="w-7 h-7 shrink-0" />
+                    <Icon className="w-6 h-6 shrink-0" />
                   </div>
                   {/* Text */}
                   <div className="ml-20 pr-3 h-full flex items-center z-10 relative">
@@ -115,7 +103,7 @@ function CollapsedSidebar({ menuItems }: { menuItems: MenuItem[] }) {
 
                   {/* NỘI DUNG */}
                   <div className="relative z-10 flex flex-col items-center gap-2">
-                    <Icon className="w-7 h-7 transition-all" />
+                    <Icon className="w-6 h-6 transition-all" />
                     <span
                       className={[
                         "text-[11px] leading-tight truncate w-full text-center transition-colors",

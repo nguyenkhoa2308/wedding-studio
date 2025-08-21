@@ -10,6 +10,7 @@ export type MenuKey =
   | "retouch"
   | "staff"
   | "crm"
+  | "permissions"
   | "studio-info"
   | "settings";
 

@@ -444,7 +444,7 @@ export default function CRMPage() {
       </div>
 
       {/* Search and Filter */}
-      <div className="glass-card">
+      <div className="bg-[#ffffffb3] text-[#1a1a1a] flex flex-col gap-6 rounded-xl border glass-card">
         <div className="mobile-card">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
@@ -490,14 +490,14 @@ export default function CRMPage() {
       </div>
 
       {/* Customer List */}
-      <div className="glass-card">
-        <div className="mobile-card p-0 overflow-hidden">
+      <div className="bg-[#ffffffb3] text-[#1a1a1a] flex flex-col gap-6 rounded-xl border glass-card glass-card">
+        <div className="[&:last-child]:pb-6 mobile-card p-0 overflow-hidden">
           <div className="w-full overflow-x-hidden">
             <CustomerTable
               customers={filteredCustomers}
               onSelectCustomer={setSelectedCustomer}
               onEditCustomer={setEditingCustomer}
-              onMoveToContract={setMovingToContractCustomer}
+              // onMoveToContract={setMovingToContractCustomer}
               onDeleteCustomer={setDeletingCustomer}
               selectedTab="prospecting"
             />
