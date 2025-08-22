@@ -15,106 +15,113 @@ import {
   Eye,
   X,
   Search,
+  CheckCircle,
+  User,
+  UserCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { DatePicker } from "antd";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import viVN from "antd/locale/vi_VN";
+import { Appointment, AppointmentStatus } from "@/types";
+import { useAppointments } from "@/contexts/AppointmentsContext";
+import AppointmentCard from "./components/AppoinmentCard";
 
-interface Appointment {
-  id: number;
-  couple: string;
-  phone: string;
-  email: string;
-  bookDate: string;
-  shootDate: string;
-  weddingDate: string;
-  time: string;
-  duration: string;
-  location: string;
-  mainPhotographer: string;
-  assistantPhotographer: string;
-  makeupArtist: string;
-  status: "confirmed" | "pending" | "cancelled";
-  package: string;
-  notes: string;
-}
+// interface Appointment {
+//   id: number;
+//   couple: string;
+//   phone: string;
+//   email: string;
+//   bookDate: string;
+//   shootDate: string;
+//   weddingDate: string;
+//   time: string;
+//   duration: string;
+//   location: string;
+//   mainPhotographer: string;
+//   assistantPhotographer: string;
+//   makeupArtist: string;
+//   status: "confirmed" | "pending" | "cancelled";
+//   package: string;
+//   notes: string;
+// }
 
-const mockAppointments: Appointment[] = [
-  {
-    id: 1,
-    couple: "Minh Anh & Tuấn Khang",
-    phone: "0901234567",
-    email: "minhanh@email.com",
-    bookDate: "2025-01-10",
-    shootDate: "2025-01-15",
-    weddingDate: "2025-03-15",
-    time: "09:00",
-    duration: "4 giờ",
-    location: "Studio A",
-    mainPhotographer: "Nguyễn Văn A",
-    assistantPhotographer: "Trần Minh B",
-    makeupArtist: "Lê Thị Hoa",
-    status: "confirmed",
-    package: "Premium Wedding",
-    notes: "Cặp đôi muốn chụp concept vintage",
-  },
-  {
-    id: 2,
-    couple: "Thu Hà & Đức Nam",
-    phone: "0912345678",
-    email: "thuha@email.com",
-    bookDate: "2025-01-12",
-    shootDate: "2025-01-15",
-    weddingDate: "2025-02-28",
-    time: "14:00",
-    duration: "3 giờ",
-    location: "Studio B",
-    mainPhotographer: "Trần Thị B",
-    assistantPhotographer: "Nguyễn Văn C",
-    makeupArtist: "Phạm Thị Mai",
-    status: "pending",
-    package: "Classic Wedding",
-    notes: "Chụp ảnh cưới truyền thống",
-  },
-  {
-    id: 3,
-    couple: "Lan Phương & Việt Anh",
-    phone: "0923456789",
-    email: "lanphuong@email.com",
-    bookDate: "2025-01-08",
-    shootDate: "2025-01-16",
-    weddingDate: "2025-04-20",
-    time: "10:30",
-    duration: "5 giờ",
-    location: "Outdoor - Công viên Tao Đàn",
-    mainPhotographer: "Lê Văn C",
-    assistantPhotographer: "Hoàng Minh D",
-    makeupArtist: "Vũ Thị Lan",
-    status: "confirmed",
-    package: "Luxury Wedding",
-    notes: "Chụp ngoại cảnh, cần chuẩn bị trang phục thay đổi",
-  },
-  {
-    id: 4,
-    couple: "Hoài Thu & Minh Đức",
-    phone: "0934567890",
-    email: "hoaithu@email.com",
-    bookDate: "2025-01-05",
-    shootDate: "2025-01-17",
-    weddingDate: "2025-03-10",
-    time: "08:00",
-    duration: "6 giờ",
-    location: "Studio A + Outdoor",
-    mainPhotographer: "Nguyễn Văn A",
-    assistantPhotographer: "Trần Minh B",
-    makeupArtist: "Đặng Thị Hương",
-    status: "confirmed",
-    package: "Premium Wedding",
-    notes: "Chụp studio buổi sáng, ngoại cảnh buổi chiều",
-  },
-];
+// const mockAppointments: Appointment[] = [
+//   {
+//     id: 1,
+//     couple: "Minh Anh & Tuấn Khang",
+//     phone: "0901234567",
+//     email: "minhanh@email.com",
+//     bookDate: "2025-01-10",
+//     shootDate: "2025-01-15",
+//     weddingDate: "2025-03-15",
+//     time: "09:00",
+//     duration: "4 giờ",
+//     location: "Studio A",
+//     mainPhotographer: "Nguyễn Văn A",
+//     assistantPhotographer: "Trần Minh B",
+//     makeupArtist: "Lê Thị Hoa",
+//     status: "confirmed",
+//     package: "Premium Wedding",
+//     notes: "Cặp đôi muốn chụp concept vintage",
+//   },
+//   {
+//     id: 2,
+//     couple: "Thu Hà & Đức Nam",
+//     phone: "0912345678",
+//     email: "thuha@email.com",
+//     bookDate: "2025-01-12",
+//     shootDate: "2025-01-15",
+//     weddingDate: "2025-02-28",
+//     time: "14:00",
+//     duration: "3 giờ",
+//     location: "Studio B",
+//     mainPhotographer: "Trần Thị B",
+//     assistantPhotographer: "Nguyễn Văn C",
+//     makeupArtist: "Phạm Thị Mai",
+//     status: "pending",
+//     package: "Classic Wedding",
+//     notes: "Chụp ảnh cưới truyền thống",
+//   },
+//   {
+//     id: 3,
+//     couple: "Lan Phương & Việt Anh",
+//     phone: "0923456789",
+//     email: "lanphuong@email.com",
+//     bookDate: "2025-01-08",
+//     shootDate: "2025-01-16",
+//     weddingDate: "2025-04-20",
+//     time: "10:30",
+//     duration: "5 giờ",
+//     location: "Outdoor - Công viên Tao Đàn",
+//     mainPhotographer: "Lê Văn C",
+//     assistantPhotographer: "Hoàng Minh D",
+//     makeupArtist: "Vũ Thị Lan",
+//     status: "confirmed",
+//     package: "Luxury Wedding",
+//     notes: "Chụp ngoại cảnh, cần chuẩn bị trang phục thay đổi",
+//   },
+//   {
+//     id: 4,
+//     couple: "Hoài Thu & Minh Đức",
+//     phone: "0934567890",
+//     email: "hoaithu@email.com",
+//     bookDate: "2025-01-05",
+//     shootDate: "2025-01-17",
+//     weddingDate: "2025-03-10",
+//     time: "08:00",
+//     duration: "6 giờ",
+//     location: "Studio A + Outdoor",
+//     mainPhotographer: "Nguyễn Văn A",
+//     assistantPhotographer: "Trần Minh B",
+//     makeupArtist: "Đặng Thị Hương",
+//     status: "confirmed",
+//     package: "Premium Wedding",
+//     notes: "Chụp studio buổi sáng, ngoại cảnh buổi chiều",
+//   },
+// ];
 
 const photographers = [
   "Nguyễn Văn A",
@@ -163,8 +170,14 @@ interface NewAppointment {
   package: string;
   notes: string;
 }
-
 export default function AppointmentsPage() {
+  const { appointments, updateAppointment } = useAppointments();
+  // Status change dialog states
+  const [isStatusChangeOpen, setIsStatusChangeOpen] = useState(false);
+  const [selectedAppointmentForStatus, setSelectedAppointmentForStatus] =
+    useState<Appointment | null>(null);
+  const [targetStatus, setTargetStatus] =
+    useState<AppointmentStatus>("staff_assignment");
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -189,6 +202,53 @@ export default function AppointmentsPage() {
     notes: "",
   });
 
+  const getStatusConfig = (status: AppointmentStatus) => {
+    switch (status) {
+      case "staff_assignment":
+        return {
+          label: "Xếp nhân sự",
+          color: "bg-amber-100 text-amber-800 border-amber-200",
+          icon: Users,
+          description: "Đang xếp nhân sự và thiết bị cho buổi chụp",
+        };
+      case "waiting_confirmation":
+        return {
+          label: "Chờ xác nhận",
+          color: "bg-blue-100 text-blue-800 border-blue-200",
+          icon: Clock,
+          description: "Chờ khách hàng xác nhận lịch chụp",
+        };
+      case "confirmed":
+        return {
+          label: "Đã xác nhận",
+          color: "bg-emerald-100 text-emerald-800 border-emerald-200",
+          icon: CheckCircle,
+          description: "Khách hàng đã xác nhận, sẵn sàng chụp",
+        };
+      case "shooting":
+        return {
+          label: "Đang chụp",
+          color: "bg-purple-100 text-purple-800 border-purple-200",
+          icon: Camera,
+          description: "Đang trong quá trình chụp ảnh",
+        };
+      case "completed":
+        return {
+          label: "Hoàn thành",
+          color: "bg-green-100 text-green-800 border-green-200",
+          icon: CheckCircle,
+          description: "Đã hoàn thành buổi chụp",
+        };
+      default:
+        return {
+          label: "Không xác định",
+          color: "bg-slate-100 text-slate-800 border-slate-200",
+          icon: AlertTriangle,
+          description: "Trạng thái không xác định",
+        };
+    }
+  };
+
   const normalize = (s?: string) =>
     (s ?? "")
       .toString()
@@ -208,8 +268,8 @@ export default function AppointmentsPage() {
     const end = hasEnd ? dayjs(endDate).endOf("day") : dayjs();
 
     // 1) Lọc theo ngày
-    const byDate = mockAppointments.filter((appointment: Appointment) => {
-      const d = dayjs(appointment.shootDate);
+    const byDate = appointments.filter((appointment: Appointment) => {
+      const d = dayjs(appointment.date);
       return d.valueOf() >= start.valueOf() && d.valueOf() <= end.valueOf();
     });
 
@@ -219,11 +279,10 @@ export default function AppointmentsPage() {
 
     // 3) Lọc theo từ khóa (tên/email/điện thoại)
     const q = normalize(qRaw);
-    const qDigits = qRaw.replace(/\D/g, ""); // chỉ lấy số để so sánh phone
 
     return byDate.filter((a: Appointment) => {
       // gom các field text để tìm theo từ khóa (không phân biệt dấu)
-      const textFields = [a.couple, a.phone, a.email].filter(
+      const textFields = [a.couple, a.contractNumber].filter(
         Boolean
       ) as string[];
 
@@ -232,19 +291,8 @@ export default function AppointmentsPage() {
         .some((t) => t.includes(q));
 
       // so khớp theo chữ số của phone (bỏ dấu cách, dấu chấm, +84,...)
-      let phoneMatch = false;
-      if (qDigits.length >= 3) {
-        const phones = [
-          a.phone,
-          ...(Array.isArray(a.phone) ? a.phone : []),
-        ].filter(Boolean) as string[];
 
-        phoneMatch = phones
-          .map((p) => p.replace(/\D/g, ""))
-          .some((p) => p.includes(qDigits));
-      }
-
-      return textMatch || phoneMatch;
+      return textMatch;
     });
   };
 
@@ -263,6 +311,26 @@ export default function AppointmentsPage() {
     }
   };
 
+  const getAvailableTransitions = (
+    currentStatus: AppointmentStatus
+  ): AppointmentStatus[] => {
+    switch (currentStatus) {
+      case "staff_assignment":
+        return ["waiting_confirmation"];
+      case "waiting_confirmation":
+        return ["confirmed"];
+      case "confirmed":
+        // Auto transition to shooting on shoot date will be handled by system
+        return ["shooting"]; // Manual override if needed
+      case "shooting":
+        return ["completed"];
+      case "completed":
+        return []; // Final state
+      default:
+        return [];
+    }
+  };
+
   const getStatusText = (status: string) => {
     switch (status) {
       case "confirmed":
@@ -274,10 +342,6 @@ export default function AppointmentsPage() {
       default:
         return "Không xác định";
     }
-  };
-
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
   };
 
   const formatDate = (dateString: string) => {
@@ -318,6 +382,19 @@ export default function AppointmentsPage() {
     });
   };
 
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  const handleStatusChange = (
+    appointment: Appointment,
+    newStatus: AppointmentStatus
+  ) => {
+    setSelectedAppointmentForStatus(appointment);
+    setTargetStatus(newStatus);
+    setIsStatusChangeOpen(true);
+  };
+
   const handleCreateAppointment = () => {
     // Logic tạo lịch hẹn mới
     console.log("Creating appointment:", newAppointment);
@@ -343,6 +420,71 @@ export default function AppointmentsPage() {
           <Plus className="w-4 h-4" />
           Tạo lịch hẹn mới
         </button>
+      </div>
+
+      <div className="grid mobile-grid gap-4">
+        <div className="bg-[#ffffffb3] text-[#1a1a1a] flex flex-col gap-6 rounded-xl border glass-card border-amber-200/30 touch-manipulation">
+          <div className="px-6 [&:last-child]:pb-6 mobile-card">
+            <div className="flex items-center space-x-2">
+              <Users className="h-8 w-8 text-amber-600" />
+              <div>
+                <p className="text-2xl font-bold text-slate-900">
+                  {
+                    appointments.filter((a) => a.status === "staff_assignment")
+                      .length
+                  }
+                </p>
+                <p className="text-sm text-slate-600">Xếp nhân sự</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#ffffffb3] text-[#1a1a1a] flex flex-col gap-6 rounded-xl border glass-card border-amber-200/30 touch-manipulation">
+          <div className="px-6 [&:last-child]:pb-6 mobile-card">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-8 w-8 text-blue-600" />
+              <div>
+                <p className="text-2xl font-bold text-slate-900">
+                  {
+                    appointments.filter(
+                      (a) => a.status === "waiting_confirmation"
+                    ).length
+                  }
+                </p>
+                <p className="text-sm text-slate-600">Chờ xác nhận</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#ffffffb3] text-[#1a1a1a] flex flex-col gap-6 rounded-xl border glass-card border-amber-200/30 touch-manipulation">
+          <div className="px-6 [&:last-child]:pb-6 mobile-card">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-8 w-8 text-emerald-600" />
+              <div>
+                <p className="text-2xl font-bold text-slate-900">
+                  {appointments.filter((a) => a.status === "confirmed").length}
+                </p>
+                <p className="text-sm text-slate-600">Đã xác nhận</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#ffffffb3] text-[#1a1a1a] flex flex-col gap-6 rounded-xl border glass-card border-purple-200/30 touch-manipulation">
+          <div className="px-6 [&:last-child]:pb-6 mobile-card">
+            <div className="flex items-center space-x-2">
+              <Camera className="h-8 w-8 text-purple-600" />
+              <div>
+                <p className="text-2xl font-bold text-slate-900">
+                  {appointments.filter((a) => a.status === "shooting").length}
+                </p>
+                <p className="text-sm text-slate-600">Đang chụp</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Date Filter */}
@@ -434,127 +576,15 @@ export default function AppointmentsPage() {
       </div>
 
       {/* Appointments List */}
-      <div className="space-y-4">
-        {filteredAppointments.map((appointment) => (
-          <div
+      <div className="mobile-spacing">
+        {appointments.map((appointment) => (
+          <AppointmentCard
             key={appointment.id}
-            className="bg-white/80 backdrop-blur-sm border border-white/20 rounded-xl shadow-lg border-l-4 border-l-blue-500 p-6 transition-all duration-200 hover:shadow-xl hover:bg-white/90"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-xl font-semibold text-slate-900">
-                  {appointment.couple}
-                </h3>
-                <div className="flex items-center space-x-4 mt-2 text-sm text-slate-600">
-                  <span className="flex items-center gap-1">
-                    <Phone className="w-4 h-4" />
-                    {appointment.phone}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Mail className="w-4 h-4" />
-                    {appointment.email}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span
-                  className={`px-2 py-1 rounded border text-sm font-medium ${getStatusColor(
-                    appointment.status
-                  )}`}
-                >
-                  {getStatusText(appointment.status)}
-                </span>
-                <button
-                  onClick={() => openDetailModal(appointment)}
-                  className="p-2 hover:bg-slate-100/50 rounded transition-all duration-200 hover:scale-110 cursor-pointer"
-                  title="Xem chi tiết"
-                >
-                  <Eye className="w-4 h-4 md:w-5 md:h-5" />
-                </button>
-                <button
-                  className="p-2 hover:bg-slate-100/50 rounded transition-all duration-200 hover:scale-110 cursor-pointer"
-                  title="Chỉnh sửa"
-                >
-                  <Edit className="w-4 h-4 md:w-5 md:h-5" />
-                </button>
-                <button
-                  className="p-2 text-red-600 hover:bg-red-50/50 rounded transition-all duration-200 hover:scale-110 cursor-pointer"
-                  title="Xoá"
-                >
-                  <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-slate-500" />
-                <div>
-                  <p className="text-sm font-medium text-slate-800">
-                    {appointment.time}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {appointment.duration}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-slate-500" />
-                <div>
-                  <p className="text-sm font-medium text-slate-800">
-                    {appointment.location}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Camera className="w-4 h-4 text-slate-500" />
-                <div>
-                  <p className="text-sm font-medium text-slate-800">
-                    {appointment.mainPhotographer}
-                  </p>
-                  <p className="text-xs text-slate-500">Chụp chính</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Users className="w-4 h-4 text-slate-500" />
-                <div>
-                  <p className="text-sm font-medium text-slate-800">
-                    {appointment.package}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Timeline thông tin bổ sung */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 p-3 bg-slate-50/50 rounded-lg backdrop-blur-sm">
-              <div className="text-center">
-                <p className="text-xs text-slate-500 mb-1">Ngày book</p>
-                <p className="text-sm font-medium text-slate-800">
-                  {formatDate(appointment.bookDate)}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-slate-500 mb-1">Ngày chụp</p>
-                <p className="text-sm font-medium text-slate-800">
-                  {formatDate(appointment.shootDate)}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-slate-500 mb-1">Ngày cưới</p>
-                <p className="text-sm font-medium text-slate-800">
-                  {formatDate(appointment.weddingDate)}
-                </p>
-              </div>
-            </div>
-
-            {appointment.notes && (
-              <div className="bg-white/50 backdrop-blur-sm rounded-lg p-3 border border-slate-200/50">
-                <p className="text-sm text-slate-700">
-                  <strong>Ghi chú:</strong> {appointment.notes}
-                </p>
-              </div>
-            )}
-          </div>
+            appointment={appointment}
+            getStatusConfig={getStatusConfig}
+            getAvailableTransitions={getAvailableTransitions}
+            onStatusChange={handleStatusChange}
+          />
         ))}
       </div>
 

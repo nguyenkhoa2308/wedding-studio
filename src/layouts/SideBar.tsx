@@ -8,6 +8,7 @@ import { MenuItem } from "@/types";
 interface SideBarProps {
   isMobile: boolean;
   sidebarOpen: boolean;
+  mobileMenuOpen: boolean;
   menuItems: MenuItem[];
 }
 
@@ -125,15 +126,23 @@ function CollapsedSidebar({ menuItems }: { menuItems: MenuItem[] }) {
   );
 }
 
-export function SideBar({ isMobile, sidebarOpen, menuItems }: SideBarProps) {
+export function SideBar({
+  isMobile,
+  sidebarOpen,
+  menuItems,
+  mobileMenuOpen,
+}: SideBarProps) {
   return (
     <div className="bg-gradient-to-br from-slate-50 via-white to-gray-50">
-      {!isMobile &&
-        (sidebarOpen ? (
+      {!isMobile ? (
+        sidebarOpen ? (
           <ExpandedSidebar menuItems={menuItems} />
         ) : (
           <CollapsedSidebar menuItems={menuItems} />
-        ))}
+        )
+      ) : (
+        mobileMenuOpen && <ExpandedSidebar menuItems={menuItems} />
+      )}
     </div>
   );
 }

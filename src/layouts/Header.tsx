@@ -13,6 +13,7 @@ import React, {
 
 interface HeaderProps {
   isMobile: boolean;
+  mobileMenuOpen: boolean;
   setMobileMenuOpen: Dispatch<SetStateAction<boolean>>;
   sidebarOpen: boolean;
   setSidebarOpen: Dispatch<SetStateAction<boolean>>;
@@ -20,6 +21,7 @@ interface HeaderProps {
 
 export function Header({
   isMobile,
+  mobileMenuOpen,
   setMobileMenuOpen,
   sidebarOpen,
   setSidebarOpen,
@@ -51,7 +53,7 @@ export function Header({
           <button
             onClick={() => {
               if (isMobile) {
-                setMobileMenuOpen(true);
+                setMobileMenuOpen(!mobileMenuOpen);
               } else {
                 setSidebarOpen(!sidebarOpen);
               }

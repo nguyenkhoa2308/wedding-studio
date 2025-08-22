@@ -1,51 +1,47 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "./auth/AuthContext";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Alert, AlertDescription } from "./ui/alert";
 import { Eye, EyeOff, LogIn, Heart, Camera, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useLoginUserMutation } from "@/lib/redux/services/authApi";
 
-interface LoginFormProps {
-  onNavigate: (page: string) => void;
-}
-
-export function LoginForm({ onNavigate }: LoginFormProps) {
+export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const { login, isLoading, user } = useAuth();
+  const [loginUser, { data, isError, isLoading }] = useLoginUserMutation();
+  const router = useRouter();
+  // const { login, isLoading, user } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      onNavigate("dashboard");
-    }
-  }, [user, onNavigate]);
+  // useEffect(() => {
+  //   if (user) {
+  //     onNavigate("dashboard");
+  //   }
+  // }, [user, onNavigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    // setError("");
 
     if (!email || !password) {
       setError("Vui lòng nhập đầy đủ thông tin");
       return;
     }
 
-    const success = await login(email, password);
-    if (success) {
-      onNavigate("dashboard");
+    const success = await loginUser({ email, password });
+    console.log(success);
+
+    if (success.data) {
+      router.push("/");
     } else {
       setError("Email hoặc mật khẩu không đúng");
     }
   };
 
-  if (user) {
-    return null; // Will redirect
-  }
+  // if (user) {
+  //   return null; // Will redirect
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center mobile-padding py-12">
@@ -68,31 +64,29 @@ export function LoginForm({ onNavigate }: LoginFormProps) {
         </div>
 
         {/* Login Form */}
-        <Card className="glass-card shadow-xl border-0">
-          <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-xl sm:text-2xl text-center text-gray-900 flex items-center justify-center gap-2">
+        <div className="glass-card shadow-xl border-0">
+          <div className="space-y-1 pb-6">
+            <div className="text-xl sm:text-2xl text-center text-gray-900 flex items-center justify-center gap-2">
               <LogIn className="w-5 h-5 text-rose-600" />
               Đăng nhập
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+            </div>
+          </div>
+          <div className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <Alert className="border-red-200 bg-red-50">
-                  <AlertDescription className="text-red-700 text-sm">
-                    {error}
-                  </AlertDescription>
-                </Alert>
+                <div className="border-red-200 bg-red-50">
+                  <div className="text-red-700 text-sm">{error}</div>
+                </div>
               )}
 
               <div className="space-y-2">
-                <Label
+                <label
                   htmlFor="email"
                   className="text-sm font-medium text-gray-700"
                 >
                   Email
-                </Label>
-                <Input
+                </label>
+                <input
                   id="email"
                   type="email"
                   value={email}
@@ -104,14 +98,14 @@ export function LoginForm({ onNavigate }: LoginFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label
+                <label
                   htmlFor="password"
                   className="text-sm font-medium text-gray-700"
                 >
                   Mật khẩu
-                </Label>
+                </label>
                 <div className="relative">
-                  <Input
+                  <input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
@@ -120,10 +114,7 @@ export function LoginForm({ onNavigate }: LoginFormProps) {
                     className="mobile-input border-gray-200 focus:border-blue-300 focus:ring-blue-200 bg-white pr-12"
                     disabled={isLoading}
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
+                  <button
                     className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
@@ -133,11 +124,11 @@ export function LoginForm({ onNavigate }: LoginFormProps) {
                     ) : (
                       <Eye className="w-4 h-4 text-gray-500" />
                     )}
-                  </Button>
+                  </button>
                 </div>
               </div>
 
-              <Button
+              <button
                 type="submit"
                 className="w-full mobile-button bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white border-0 shadow-lg"
                 disabled={isLoading}
@@ -153,7 +144,7 @@ export function LoginForm({ onNavigate }: LoginFormProps) {
                     Đăng nhập
                   </>
                 )}
-              </Button>
+              </button>
             </form>
 
             <div className="text-center">
@@ -167,11 +158,11 @@ export function LoginForm({ onNavigate }: LoginFormProps) {
                 </button>
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Demo Accounts */}
-        <Card className="glass border-amber-200/50 bg-amber-50/30">
+        {/* <Card className="glass border-amber-200/50 bg-amber-50/30">
           <CardContent className="p-4 space-y-3">
             <h3 className="text-sm font-medium text-amber-800 flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -197,7 +188,7 @@ export function LoginForm({ onNavigate }: LoginFormProps) {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Footer */}
         <div className="text-center space-y-4">
