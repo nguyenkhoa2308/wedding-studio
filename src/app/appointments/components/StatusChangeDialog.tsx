@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -132,6 +133,7 @@ export default function StatusChangeDialog({
                   Photographer chính <span className="text-red-500">*</span>
                 </label>
                 <select
+                  title="Chọn photographer"
                   value={formData.photographer}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -159,6 +161,7 @@ export default function StatusChangeDialog({
                   Photographer phụ
                 </label>
                 <select
+                  title="Chọn photographer phụ"
                   value={formData.assistant}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -181,6 +184,7 @@ export default function StatusChangeDialog({
                 Makeup Artist
               </label>
               <select
+                title="Chọn makeup artist"
                 value={formData.makeup}
                 onChange={(e) =>
                   setFormData((prev) => ({

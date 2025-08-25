@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
-import { Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import CustomerTable from "./components/tables/CustomerTable";
 
 // Mock customer data - only prospecting customers now
@@ -351,15 +352,15 @@ export default function CRMPage() {
     );
 
     // Create new contract using context with updated customer data
-    const newContract = createAndAddContractFromCustomer(
-      updatedCustomer,
-      contractData
-    );
+    // const newContract = createAndAddContractFromCustomer(
+    //   updatedCustomer,
+    //   contractData
+    // );
 
     // Show success notification (in real app, would use toast)
-    console.log(
-      `Đã tạo hợp đồng ${newContract.contractNumber} cho khách hàng ${customer.name}`
-    );
+    // console.log(
+    //   `Đã tạo hợp đồng ${newContract.contractNumber} cho khách hàng ${customer.name}`
+    // );
     console.log(`Thông tin hợp đồng:`, {
       contractName: contractData.contractName,
       package: contractData.package,

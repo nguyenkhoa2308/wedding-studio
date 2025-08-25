@@ -21,6 +21,7 @@ import {
 import { MenuItem } from "@/types";
 import { AppointmentsProvider } from "@/contexts/AppointmentsContext";
 import { ContractsProvider } from "@/contexts/ContractsContext";
+import { PricingProvider } from "@/contexts/PricingContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -92,55 +93,57 @@ export default function RootLayout({
       >
         <ContractsProvider>
           <AppointmentsProvider>
-            {!isNaked && (
-              <Header
-                isMobile={isMobile}
-                mobileMenuOpen={mobileMenuOpen}
-                setMobileMenuOpen={setMobileMenuOpen}
-                sidebarOpen={sidebarOpen}
-                setSidebarOpen={setSidebarOpen}
-              />
-            )}
+            <PricingProvider>
+              {!isNaked && (
+                <Header
+                  isMobile={isMobile}
+                  mobileMenuOpen={mobileMenuOpen}
+                  setMobileMenuOpen={setMobileMenuOpen}
+                  sidebarOpen={sidebarOpen}
+                  setSidebarOpen={setSidebarOpen}
+                />
+              )}
 
-            {!isNaked && pathname !== "/" && (
-              <div
-                className={`fixed top-16 left-0 right-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 transition-all duration-300 ${
-                  !isMobile ? (sidebarOpen ? "ml-64" : "ml-24") : ""
+              {!isNaked && pathname !== "/" && (
+                <div
+                  className={`fixed top-16 left-0 right-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 transition-all duration-300 ${
+                    !isMobile ? (sidebarOpen ? "ml-64" : "ml-24") : ""
+                  }`}
+                >
+                  <div className="px-4 py-3">
+                    <nav className="flex items-center space-x-2 text-sm">
+                      <Link
+                        href="/"
+                        className="flex items-center gap-2 px-2 py-1 h-auto text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                      >
+                        <Home className="w-4 h-4" />
+                        <span className="hidden sm:inline">Dashboard</span>
+                      </Link>
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-900 dark:text-gray-100 font-medium">
+                        {getPageTitle(pathname)}
+                      </span>
+                    </nav>
+                  </div>
+                </div>
+              )}
+              {!isNaked && (
+                <SideBar
+                  isMobile={isMobile}
+                  sidebarOpen={sidebarOpen}
+                  mobileMenuOpen={mobileMenuOpen}
+                  menuItems={menuItems}
+                />
+              )}
+              <main
+                className={`${
+                  !isNaked &&
+                  `pt-16 ${!isMobile ? (sidebarOpen ? "ml-64" : "ml-24") : ""}`
                 }`}
               >
-                <div className="px-4 py-3">
-                  <nav className="flex items-center space-x-2 text-sm">
-                    <Link
-                      href="/"
-                      className="flex items-center gap-2 px-2 py-1 h-auto text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
-                    >
-                      <Home className="w-4 h-4" />
-                      <span className="hidden sm:inline">Dashboard</span>
-                    </Link>
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-900 dark:text-gray-100 font-medium">
-                      {getPageTitle(pathname)}
-                    </span>
-                  </nav>
-                </div>
-              </div>
-            )}
-            {!isNaked && (
-              <SideBar
-                isMobile={isMobile}
-                sidebarOpen={sidebarOpen}
-                mobileMenuOpen={mobileMenuOpen}
-                menuItems={menuItems}
-              />
-            )}
-            <main
-              className={`${
-                !isNaked &&
-                `pt-16 ${!isMobile ? (sidebarOpen ? "ml-64" : "ml-24") : ""}`
-              }`}
-            >
-              {children}
-            </main>
+                {children}
+              </main>
+            </PricingProvider>
           </AppointmentsProvider>
         </ContractsProvider>
       </body>

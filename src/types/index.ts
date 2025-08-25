@@ -200,3 +200,37 @@ export interface Contract {
   originalImagesUrl?: string;
   retouchImagesUrl?: string;
 }
+
+export interface Service {
+  id: string;
+  name: string;
+  price: string;
+  originalPrice?: string | null;
+  duration: string;
+  location: string;
+  popular: boolean;
+  image: string;
+  description: string;
+  features: string[];
+  stats?: {
+    active: number;
+    completed: number;
+    totalRevenue: number;
+  };
+}
+
+export interface AdditionalPricingService {
+  id: string;
+  name: string;
+  price: string;
+  description?: string;
+}
+
+export interface ServicesData {
+  prewedding: Service[];
+  video: Service[];
+  family: Service[];
+  documentary: Service[];
+  combo: Service[];
+  additional: AdditionalPricingService[];
+}
