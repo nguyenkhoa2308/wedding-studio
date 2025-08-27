@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/contexts/AuthContext";
 import { Menu, Bell } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,6 +29,7 @@ export function Header({
 }: HeaderProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { user, logout } = useAuth();
 
   // Đóng khi click ra ngoài hoặc nhấn Esc
   useEffect(() => {
@@ -132,10 +134,10 @@ export function Header({
                   </div>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      Nguyễn Minh Anh
+                      {user?.name}
                     </p>
                     <p className="text-xs leading-none text-gray-600">
-                      admin@weddingstudio.com
+                      {user?.email}
                     </p>
                   </div>
                 </div>
@@ -195,6 +197,7 @@ export function Header({
                 <button
                   role="menuitem"
                   className="touch-manipulation w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100"
+                  onClick={() => logout()}
                 >
                   <svg
                     className="mr-2 h-4 w-4"

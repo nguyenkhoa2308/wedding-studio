@@ -1,25 +1,6 @@
 import { Eye, Edit, Trash2, FileText } from "lucide-react";
 import { getStatusInfo } from "../../utils/helper";
-
-interface Customer {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  status: string;
-  avatar: string;
-  weddingDate: string;
-  budget: string;
-  source: string;
-  assignedTo: string;
-  createdAt: string;
-  lastContact: string;
-  priority: string;
-  notes: any[];
-  contractValue?: string;
-  contractDate?: string;
-}
+import { Customer } from "@/types";
 
 interface CustomerTableProps {
   customers: Customer[];
@@ -73,7 +54,7 @@ export default function CustomerTable({
             return (
               <tr
                 key={customer.id}
-                className="data-[state=selected]:bg-[#f8fafc] border-b hover:bg-gray-50 cursor-pointer transition-colors"
+                className="data-[state=selected]:bg-[#f8fafc] border-b hover:bg-gray-50 cursor-pointer transition-colors h-15"
                 onClick={() => onSelectCustomer(customer)}
               >
                 <td className="p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] pl-6 w-[120px]">
@@ -159,37 +140,37 @@ export default function CustomerTable({
                 >
                   <div className="flex justify-center gap-1">
                     <button
-                      className="h-8 w-8 p-0 mobile-button touch-manipulation hover-lift"
+                      className="flex justify-center items-center touch-manipulation cursor-pointer hover:bg-slate-100 p-3"
                       onClick={() => onSelectCustomer(customer)}
                       title="Xem chi tiết"
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     </button>
                     {onEditCustomer && (
                       <button
-                        className="h-8 w-8 p-0 mobile-button touch-manipulation hover:bg-slate-100 hover-lift"
+                        className="flex justify-center items-center touch-manipulation hover:bg-slate-100 p-3"
                         onClick={() => onEditCustomer(customer)}
                         title="Chỉnh sửa"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                       </button>
                     )}
                     {selectedTab === "prospecting" && onCreateContract && (
                       <button
-                        className="h-8 w-8 p-0 mobile-button touch-manipulation hover:bg-emerald-50 hover-lift text-emerald-600"
+                        className="flex justify-center items-center touch-manipulation hover:bg-emerald-50 text-emerald-600 p-3"
                         onClick={() => onCreateContract(customer)}
                         title="Tạo hợp đồng"
                       >
-                        <FileText className="w-4 h-4" />
+                        <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                       </button>
                     )}
                     {onDeleteCustomer && (
                       <button
-                        className="h-8 w-8 p-0 mobile-button touch-manipulation hover:bg-red-50 hover-lift text-red-600"
+                        className="flex justify-center items-center touch-manipulation hover:bg-red-50 text-red-600 p-3"
                         onClick={() => onDeleteCustomer(customer)}
                         title="Xóa"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                       </button>
                     )}
                   </div>

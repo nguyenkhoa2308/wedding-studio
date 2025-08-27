@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
 
 const mockAppointments = [
   {
@@ -91,6 +92,7 @@ const mockQuickActions = [
 ];
 
 export default function Home() {
+  const { user } = useAuth();
   const currentDate = new Date();
   const timeString = currentDate.toLocaleTimeString("vi-VN", {
     hour: "2-digit",
@@ -137,7 +139,7 @@ export default function Home() {
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
-                      Chào buổi sáng, Thu Hà!
+                      Xin chào, {user?.name}!
                     </h1>
                     <Sparkles className="w-6 h-6 text-yellow-500" />
                   </div>
@@ -145,7 +147,7 @@ export default function Home() {
                   <p className="text-gray-600 mb-4 max-w-md leading-relaxed">
                     Chào mừng bạn trở lại với{" "}
                     <span className="font-semibold text-blue-600">
-                      Plannie Studio
+                      {user?.name}
                     </span>
                     . Hôm nay sẽ là một ngày tuyệt vời với nhiều cơ hội mới! ✨
                   </p>

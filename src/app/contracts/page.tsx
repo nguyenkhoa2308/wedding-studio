@@ -571,107 +571,103 @@ export default function ContractsPage() {
 
   return (
     <div className="p-6 space-y-6 min-h-screen pt-18">
-      <div className="pt-6 pb-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-100">
-              <FileText className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Quản lý hợp đồng
-              </h1>
-              <p className="text-sm text-gray-500">
-                {contracts.length} hợp đồng
-              </p>
-            </div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-100">
+            <FileText className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Quản lý hợp đồng
+            </h1>
+            <p className="text-sm text-gray-500">{contracts.length} hợp đồng</p>
           </div>
         </div>
-
-        {/* Status Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {statusOrder.map((status) => {
-            const statusConfig = getStatusConfig(status);
-            const count = groupedContracts[status]?.length || 0;
-            const StatusIcon = statusConfig.icon;
-
-            return (
-              <div
-                key={status}
-                className="bg-white border border-gray-200 rounded-lg p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-base font-medium text-gray-600">
-                      {statusConfig.label}
-                    </p>
-                    <p className="text-xl font-bold text-gray-900">{count}</p>
-                  </div>
-                  <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${statusConfig.color}`}
-                  >
-                    <StatusIcon className="w-5 h-5" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Contracts List */}
-        <div className="space-y-6">
-          {statusOrder.map((status) => {
-            const contractsInStatus = groupedContracts[status] || [];
-            if (contractsInStatus.length === 0) return null;
-
-            const statusConfig = getStatusConfig(status);
-            const StatusIcon = statusConfig.icon;
-
-            return (
-              <div key={status}>
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center ${statusConfig.color}`}
-                  >
-                    <StatusIcon className="w-4 h-4" />
-                  </div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {statusConfig.label} ({contractsInStatus.length})
-                  </h2>
-                </div>
-                {contractsInStatus.map((contract) => (
-                  <ContractCard
-                    key={contract.id}
-                    contract={contract}
-                    onStatusChange={handleStatusChange}
-                    onViewNoteLog={handleViewNoteLog}
-                    onEditCustomerInfo={handleEditCustomerInfo}
-                    onAddNote={handleAddNote}
-                    onAddService={handleAddService}
-                    onGenerateSummary={generateSummary}
-                    notesSummary={notesSummaries[contract.id]}
-                    isGeneratingSummary={isGeneratingSummary[contract.id]}
-                  />
-                ))}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Empty State */}
-        {contracts.length === 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Chưa có hợp đồng nào
-            </h3>
-            <p className="text-gray-500">
-              Hợp đồng sẽ xuất hiện ở đây khi được tạo từ khách hàng tiềm năng.
-            </p>
-          </div>
-        )}
       </div>
+
+      {/* Status Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {statusOrder.map((status) => {
+          const statusConfig = getStatusConfig(status);
+          const count = groupedContracts[status]?.length || 0;
+          const StatusIcon = statusConfig.icon;
+
+          return (
+            <div
+              key={status}
+              className="bg-white border border-gray-200 rounded-lg p-4"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-medium text-gray-600">
+                    {statusConfig.label}
+                  </p>
+                  <p className="text-xl font-bold text-gray-900">{count}</p>
+                </div>
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${statusConfig.color}`}
+                >
+                  <StatusIcon className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Contracts List */}
+      <div className="space-y-6">
+        {statusOrder.map((status) => {
+          const contractsInStatus = groupedContracts[status] || [];
+          if (contractsInStatus.length === 0) return null;
+
+          const statusConfig = getStatusConfig(status);
+          const StatusIcon = statusConfig.icon;
+
+          return (
+            <div key={status}>
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${statusConfig.color}`}
+                >
+                  <StatusIcon className="w-4 h-4" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {statusConfig.label} ({contractsInStatus.length})
+                </h2>
+              </div>
+              {contractsInStatus.map((contract) => (
+                <ContractCard
+                  key={contract.id}
+                  contract={contract}
+                  onStatusChange={handleStatusChange}
+                  onViewNoteLog={handleViewNoteLog}
+                  onEditCustomerInfo={handleEditCustomerInfo}
+                  onAddNote={handleAddNote}
+                  onAddService={handleAddService}
+                  onGenerateSummary={generateSummary}
+                  notesSummary={notesSummaries[contract.id]}
+                  isGeneratingSummary={isGeneratingSummary[contract.id]}
+                />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Empty State */}
+      {contracts.length === 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
+          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Chưa có hợp đồng nào
+          </h3>
+          <p className="text-gray-500">
+            Hợp đồng sẽ xuất hiện ở đây khi được tạo từ khách hàng tiềm năng.
+          </p>
+        </div>
+      )}
 
       {/* Dialogs */}
       <StatusChangeDialog

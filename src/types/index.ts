@@ -234,3 +234,37 @@ export interface ServicesData {
   combo: Service[];
   additional: AdditionalPricingService[];
 }
+
+export interface StaffMember {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  department: string;
+  position: string;
+  avatar: string;
+  joinDate: string;
+  currentTasks: number;
+  completedTasks: number;
+}
+
+export interface Customer {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  status: string;
+  avatar: string;
+  weddingDate: string;
+  budget: string;
+  source: string;
+  assignedTo: string;
+  createdAt: string;
+  lastContact: string;
+  priority: string;
+  notes: any[];
+  contractValue?: string;
+  contractDate?: string;
+  notesSummary?: string;
+}

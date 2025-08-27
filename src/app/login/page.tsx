@@ -2,23 +2,25 @@
 
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, LogIn, Heart, Camera, Users } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useLoginUserMutation } from "@/lib/redux/services/authApi";
+import { useAuth } from "@/contexts/AuthContext";
+// import { useLoginUserMutation } from "@/lib/redux/services/authApi";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [loginUser, { data, isError, isLoading }] = useLoginUserMutation();
+  // const [loginUser, { data, isError, isLoading }] = useLoginUserMutation();
   const router = useRouter();
-  // const { login, isLoading, user } = useAuth();
+  const { login, isLoading, user } = useAuth();
 
-  // useEffect(() => {
-  //   if (user) {
-  //     onNavigate("dashboard");
-  //   }
-  // }, [user, onNavigate]);
+  useEffect(() => {
+    if (user) {
+      router.push("/");
+    }
+  }, [router, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,33 +31,38 @@ export default function LoginForm() {
       return;
     }
 
-    const success = await loginUser({ email, password });
-    console.log(success);
+    const success = await login(email, password);
 
-    if (success.data) {
+    if (success) {
       router.push("/");
     } else {
       setError("Email hoặc mật khẩu không đúng");
     }
   };
 
-  // if (user) {
-  //   return null; // Will redirect
-  // }
+  if (user) {
+    return null; // Will redirect
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center mobile-padding py-12">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center mobile-padding py-12 relative z-100">
       <div className="w-full max-w-md space-y-8">
         {/* Logo and Header */}
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-              <Camera className="w-8 h-8 text-white" />
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg">
+              <Image
+                width={100}
+                height={100}
+                className="w-full h-full rounded-2xl"
+                src="/images/plannie-logo.jpg"
+                alt="Logo Plannie"
+              />
             </div>
           </div>
           <div className="space-y-2">
             <h1 className="text-2xl sm:text-3xl text-gray-900">
-              Wedding Studio
+              Plannie Studio
             </h1>
             <p className="text-gray-500 text-sm sm:text-base">
               Đăng nhập vào hệ thống quản lý
@@ -146,49 +153,8 @@ export default function LoginForm() {
                 )}
               </button>
             </form>
-
-            <div className="text-center">
-              <p className="text-sm text-gray-600">
-                Chưa có tài khoản?{" "}
-                <button
-                  onClick={() => onNavigate("register")}
-                  className="text-rose-600 hover:text-rose-700 font-medium transition-colors underline bg-transparent border-0 p-0 cursor-pointer"
-                >
-                  Đăng ký ngay
-                </button>
-              </p>
-            </div>
           </div>
         </div>
-
-        {/* Demo Accounts */}
-        {/* <Card className="glass border-amber-200/50 bg-amber-50/30">
-          <CardContent className="p-4 space-y-3">
-            <h3 className="text-sm font-medium text-amber-800 flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Tài khoản demo (mật khẩu: 123456)
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div className="space-y-1">
-                <p className="text-amber-700">
-                  <span className="font-medium">Admin:</span> admin@studio.com
-                </p>
-                <p className="text-amber-700">
-                  <span className="font-medium">Manager:</span>{" "}
-                  manager@studio.com
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-amber-700">
-                  <span className="font-medium">Staff:</span> staff@studio.com
-                </p>
-                <p className="text-amber-700">
-                  <span className="font-medium">Viewer:</span> viewer@studio.com
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card> */}
 
         {/* Footer */}
         <div className="text-center space-y-4">

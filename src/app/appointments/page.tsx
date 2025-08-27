@@ -348,10 +348,10 @@ export default function AppointmentsPage() {
     return new Date(dateString).toLocaleDateString("vi-VN");
   };
 
-  const openDetailModal = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setIsDetailModalOpen(true);
-  };
+  // const openDetailModal = (appointment: Appointment) => {
+  //   setSelectedAppointment(appointment);
+  //   setIsDetailModalOpen(true);
+  // };
 
   const closeDetailModal = () => {
     setIsDetailModalOpen(false);
@@ -495,7 +495,7 @@ export default function AppointmentsPage() {
             <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#94a3b8] group-focus:text-black" />
             <input
               type="text"
-              placeholder="Tìm kiếm bot, tài khoản hoặc chiến lược..."
+              placeholder="Tìm kiếm theo tên khách hàng, số điện thoại..."
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="flex h-10 w-full rounded-md border border-slate-300 px-10 py-5.5 text-md placeholder:text-[#94a3b8] outline-none bg-transparent hover:border-slate-400 focus:border-slate-400 transition-colors"
@@ -935,7 +935,7 @@ export default function AppointmentsPage() {
       )}
 
       {/* Detail Modal */}
-      {isDetailModalOpen && selectedAppointment && (
+      {/* {isDetailModalOpen && selectedAppointment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto mx-4 animate-in fade-in zoom-in duration-200">
             <div className="p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-purple-50">
@@ -971,7 +971,6 @@ export default function AppointmentsPage() {
             </div>
 
             <div className="p-6 space-y-8">
-              {/* Thông tin cơ bản */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
                   <div className="flex items-center gap-2 mb-3">
@@ -997,7 +996,6 @@ export default function AppointmentsPage() {
                 </div>
               </div>
 
-              {/* Timeline dự án */}
               <div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-blue-600" />
@@ -1037,7 +1035,6 @@ export default function AppointmentsPage() {
                 </div>
               </div>
 
-              {/* Thông tin buổi chụp */}
               <div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                   <Camera className="w-5 h-5 text-purple-600" />
@@ -1110,7 +1107,6 @@ export default function AppointmentsPage() {
                 </div>
               </div>
 
-              {/* Đội ngũ thực hiện */}
               <div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                   <Users className="w-5 h-5 text-green-600" />
@@ -1152,7 +1148,6 @@ export default function AppointmentsPage() {
                 </div>
               </div>
 
-              {/* Ghi chú đặc biệt */}
               {selectedAppointment.notes && (
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
@@ -1198,7 +1193,7 @@ export default function AppointmentsPage() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

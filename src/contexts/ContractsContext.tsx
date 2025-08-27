@@ -9,7 +9,7 @@ import React, {
   ReactNode,
 } from "react";
 import { Contract, NoteHistory } from "@/types";
-// import { updateContractWithAISummary } from "./aiWebhookService";
+import { updateContractWithAISummary } from "@/lib/aiWebhookService";
 
 interface ContractsContextType {
   contracts: Contract[];
@@ -795,10 +795,10 @@ export function ContractsProvider({ children }: { children: ReactNode }) {
         aiSummaryStatus: "pending",
       });
 
-      //   // Use setTimeout to avoid blocking the UI and allow state update
-      //   setTimeout(() => {
-      //     updateContractWithAISummary(newContract, updateContract);
-      //   }, 500); // Increased delay to ensure state is updated
+      // Use setTimeout to avoid blocking the UI and allow state update
+      setTimeout(() => {
+        updateContractWithAISummary(newContract, updateContract);
+      }, 500); // Increased delay to ensure state is updated
 
       return newContract;
     },

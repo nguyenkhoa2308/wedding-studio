@@ -4,6 +4,12 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import CustomerTable from "./components/tables/CustomerTable";
+import { AddCustomerDialog } from "./components/dialogs/AddCustomDialog";
+import CustomerDialog from "./components/dialogs/CustomerDialog";
+import { useContracts } from "@/contexts/ContractsContext";
+import CreateContractDialog from "./components/dialogs/CreateContractDialog";
+import { EditCustomerDialog } from "./components/dialogs/EditCustomerDialog";
+import { DeleteCustomerDialog } from "./components/dialogs/DeleteCustomerDialog";
 
 // Mock customer data - only prospecting customers now
 const prospectingCustomers = [
@@ -176,15 +182,15 @@ export default function CRMPage() {
   // Convert static data to state for reactive updates
   const [customers, setCustomers] = useState(prospectingCustomers);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-  const [editingCustomer, setEditingCustomer] = useState<any>(null);
-  const [movingToContractCustomer, setMovingToContractCustomer] =
+  const [creatingContractCustomer, setCreatingContractCustomer] =
     useState<any>(null);
+  const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [deletingCustomer, setDeletingCustomer] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
   // Get contracts context
-  // const { createAndAddContractFromCustomer } = useContracts();
+  const { createAndAddContractFromCustomer } = useContracts();
 
   // Filter customers - only prospecting customers now
   const filteredCustomers = customers.filter((customer) => {
@@ -304,25 +310,42 @@ export default function CRMPage() {
     );
   };
 
-  const handleMoveToContract = (
+  const handleCreateContract = (
     customer: any,
     contractData: {
-      value: string;
-      date: string;
       contractName: string;
+      packageType: string;
+      totalAmount: string;
       weddingDate: string;
-      package: string;
-      image?: string;
-      note?: string;
+      notes?: string;
+      debts: Array<{ amount: number; description: string }>;
     }
   ) => {
     let updatedCustomer = customer;
 
-    // Only add note if there's actually a note from the user
-    if (contractData.note && contractData.note.trim()) {
-      const contractNote = {
-        id: Date.now(),
-        content: contractData.note.trim(), // Remove the "Tạo hợp đồng:" prefix
+    // Add contract creation note to customer history
+    const contractNote = {
+      id: Date.now(),
+      content: `Đã tạo hợp đồng "${contractData.contractName}" với ${
+        contractData.debts?.length || "0"
+      } công nợ`,
+      author: "Current User",
+      timestamp: new Date().toLocaleString("vi-VN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }),
+      type: "contract",
+    };
+
+    // Add user note if provided
+    if (contractData.notes && contractData.notes.trim()) {
+      const userNote = {
+        id: Date.now() + 1,
+        content: contractData.notes.trim(),
         author: "Current User",
         timestamp: new Date().toLocaleString("vi-VN", {
           year: "numeric",
@@ -332,44 +355,56 @@ export default function CRMPage() {
           minute: "2-digit",
           hour12: false,
         }),
-        type: "note", // Change from "contract" to "note"
+        type: "note",
       };
 
       updatedCustomer = {
         ...customer,
+        notes: [...customer.notes, contractNote, userNote],
+      };
+    } else {
+      updatedCustomer = {
+        ...customer,
         notes: [...customer.notes, contractNote],
       };
-
-      console.log(
-        `Đã thêm ghi chú tùy chọn vào lịch sử khách hàng ${customer.name}:`,
-        contractData.note
-      );
     }
 
-    // Remove from customers state
+    // Remove from customers state (customer is now converted)
     setCustomers((prevCustomers) =>
       prevCustomers.filter((c) => c.id !== customer.id)
     );
 
-    // Create new contract using context with updated customer data
-    // const newContract = createAndAddContractFromCustomer(
-    //   updatedCustomer,
-    //   contractData
-    // );
+    // Prepare contract data for contracts context
+    const contractDataForContext = {
+      contractName: contractData.contractName,
+      package: contractData.packageType,
+      value: contractData.totalAmount,
+      weddingDate: contractData.weddingDate,
+      date: new Date().toISOString().split("T")[0], // Contract creation date
+      note: contractData.notes || "",
+      image: "", // Default empty image
+      // debts: contractData.debts, // Include debt information
+    };
 
-    // Show success notification (in real app, would use toast)
-    // console.log(
-    //   `Đã tạo hợp đồng ${newContract.contractNumber} cho khách hàng ${customer.name}`
-    // );
+    // Create new contract using context with updated customer data and debt info
+    const newContract = createAndAddContractFromCustomer(
+      updatedCustomer,
+      contractDataForContext
+    );
+
+    // Log contract creation details
+    console.log(
+      `Đã tạo hợp đồng ${newContract.contractNumber} cho khách hàng ${customer.name}`
+    );
     console.log(`Thông tin hợp đồng:`, {
       contractName: contractData.contractName,
-      package: contractData.package,
-      value: contractData.value,
+      package: contractData.packageType,
+      value: contractData.totalAmount,
       weddingDate: contractData.weddingDate,
-      hasImage: !!contractData.image,
-      hasNote: !!contractData.note,
-      noteTransferred: !!contractData.note,
+      debts: contractData.debts,
+      hasNote: !!contractData.notes,
     });
+    console.log(`Chi tiết công nợ:`, contractData.debts);
   };
 
   const handleDeleteCustomer = (customer: any) => {
@@ -383,158 +418,143 @@ export default function CRMPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 min-h-screen pt-18">
+    <div className="p-6 min-h-screen pt-18">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900">
-            CRM - Quản lý khách hàng
-          </h1>
-          <p className="text-slate-600 mt-1">
-            Theo dõi khách hàng tiềm năng và chuyển đổi thành hợp đồng
-          </p>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900">
+              CRM - Quản lý khách hàng
+            </h1>
+            <p className="text-slate-600 mt-1">
+              Theo dõi khách hàng tiềm năng và chuyển đổi thành hợp đồng
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+            <AddCustomerDialog onAddCustomer={handleAddCustomer} />
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-          {/* <AddCustomerDialog onAddCustomer={handleAddCustomer} /> */}
+
+        {/* Statistics */}
+        <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            {getCustomerStats().map((stat: any) => {
+              const isActive = statusFilter === stat.id;
+              const isClickable = !!handleStatClick;
+
+              return (
+                <div
+                  key={stat.id}
+                  className={`text-center p-2 sm:p-3 rounded-lg border backdrop-blur-sm transition-all duration-200 ${
+                    isClickable ? "cursor-pointer touch-manipulation" : ""
+                  } ${
+                    isActive
+                      ? "bg-blue-50 border-blue-200 ring-2 ring-blue-200/50 transform scale-[1.02]"
+                      : "bg-white/50 border-stone-200/60 hover:bg-white/70 hover:border-stone-300/70"
+                  }`}
+                  onClick={() => handleStatClick?.(stat.id)}
+                  title={
+                    isClickable ? `Click để lọc theo ${stat.label}` : undefined
+                  }
+                >
+                  <p
+                    className={`text-lg sm:text-xl font-bold transition-colors ${
+                      isActive ? "text-blue-700" : "text-slate-900"
+                    }`}
+                  >
+                    {stat.count}
+                  </p>
+                  <p
+                    className={`text-xs truncate transition-colors ${
+                      isActive ? "text-blue-600" : "text-slate-600"
+                    }`}
+                  >
+                    {stat.label}
+                  </p>
+                  {isActive && (
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto mt-1 animate-pulse"></div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      {/* Statistics */}
-      <div className="space-y-3">
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          {getCustomerStats().map((stat: any) => {
-            const isActive = statusFilter === stat.id;
-            const isClickable = !!handleStatClick;
-
-            return (
-              <div
-                key={stat.id}
-                className={`text-center p-2 sm:p-3 rounded-lg border backdrop-blur-sm transition-all duration-200 ${
-                  isClickable ? "cursor-pointer touch-manipulation" : ""
-                } ${
-                  isActive
-                    ? "bg-blue-50 border-blue-200 ring-2 ring-blue-200/50 transform scale-[1.02]"
-                    : "bg-white/50 border-stone-200/60 hover:bg-white/70 hover:border-stone-300/70"
-                }`}
-                onClick={() => handleStatClick?.(stat.id)}
-                title={
-                  isClickable ? `Click để lọc theo ${stat.label}` : undefined
-                }
-              >
-                <p
-                  className={`text-lg sm:text-xl font-bold transition-colors ${
-                    isActive ? "text-blue-700" : "text-slate-900"
-                  }`}
-                >
-                  {stat.count}
-                </p>
-                <p
-                  className={`text-xs truncate transition-colors ${
-                    isActive ? "text-blue-600" : "text-slate-600"
-                  }`}
-                >
-                  {stat.label}
-                </p>
-                {isActive && (
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto mt-1 animate-pulse"></div>
+        {/* Search and Filter */}
+        <div className="bg-[#ffffffb3] text-[#1a1a1a] flex flex-col gap-6 rounded-xl border glass-card">
+          <div className="mobile-card">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <div className="relative flex-2 min-w-[150px]">
+                  <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#94a3b8] group-focus:text-black" />
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm bot, tài khoản hoặc chiến lược..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-slate-300 px-10 py-5.5 text-md placeholder:text-[#94a3b8] outline-none bg-transparent hover:border-slate-400 focus:border-slate-400 transition-colors"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {statusFilter !== "all" && (
+                  <button
+                    onClick={() => setStatusFilter("all")}
+                    className="px-3 h-10 text-xs border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-800 touch-manipulation whitespace-nowrap"
+                    title="Xóa bộ lọc"
+                  >
+                    Xóa lọc
+                  </button>
                 )}
               </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="bg-[#ffffffb3] text-[#1a1a1a] flex flex-col gap-6 rounded-xl border glass-card">
-        <div className="mobile-card">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <div className="relative flex-2 min-w-[150px]">
-                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#94a3b8] group-focus:text-black" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm bot, tài khoản hoặc chiến lược..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-slate-300 px-10 py-5.5 text-md placeholder:text-[#94a3b8] outline-none bg-transparent hover:border-slate-400 focus:border-slate-400 transition-colors"
-                />
-              </div>
             </div>
-            <div className="flex gap-2">
-              {/* <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px] search-compact touch-manipulation">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Tất cả trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  {prospectingStatuses.map((status) => (
-                    <SelectItem key={status.id} value={status.id}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select> */}
+          </div>
+        </div>
 
-              {statusFilter !== "all" && (
-                <button
-                  onClick={() => setStatusFilter("all")}
-                  className="px-3 h-10 text-xs border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-800 touch-manipulation whitespace-nowrap"
-                  title="Xóa bộ lọc"
-                >
-                  Xóa lọc
-                </button>
-              )}
+        {/* Customer List */}
+        <div className="bg-[#ffffffb3] text-[#1a1a1a] flex flex-col gap-6 rounded-xl border glass-card glass-card">
+          <div className="[&:last-child]:pb-6 mobile-card p-0 overflow-hidden">
+            <div className="w-full overflow-x-hidden">
+              <CustomerTable
+                customers={filteredCustomers}
+                onSelectCustomer={setSelectedCustomer}
+                onEditCustomer={setEditingCustomer}
+                // onMoveToContract={setMovingToContractCustomer}
+                onDeleteCustomer={setDeletingCustomer}
+                selectedTab="prospecting"
+              />
             </div>
           </div>
         </div>
       </div>
-
-      {/* Customer List */}
-      <div className="bg-[#ffffffb3] text-[#1a1a1a] flex flex-col gap-6 rounded-xl border glass-card glass-card">
-        <div className="[&:last-child]:pb-6 mobile-card p-0 overflow-hidden">
-          <div className="w-full overflow-x-hidden">
-            <CustomerTable
-              customers={filteredCustomers}
-              onSelectCustomer={setSelectedCustomer}
-              onEditCustomer={setEditingCustomer}
-              // onMoveToContract={setMovingToContractCustomer}
-              onDeleteCustomer={setDeletingCustomer}
-              selectedTab="prospecting"
-            />
-          </div>
-        </div>
-      </div>
-
       {/* Customer Detail Dialog */}
-      {/* <CustomerDialog
+      <CustomerDialog
         customer={selectedCustomer}
         onClose={() => setSelectedCustomer(null)}
         onAddNote={handleAddNote}
-        statusOptions={prospectingStatuses}
-      /> */}
+        onCreateContract={setCreatingContractCustomer}
+      />
+
+      <CreateContractDialog
+        customer={creatingContractCustomer}
+        onClose={() => setCreatingContractCustomer(null)}
+        onCreateContract={handleCreateContract}
+      />
 
       {/* Edit Customer Dialog */}
-      {/* <EditCustomerDialog
+      <EditCustomerDialog
         customer={editingCustomer}
         onClose={() => setEditingCustomer(null)}
         onSave={handleEditCustomer}
         statusOptions={prospectingStatuses}
-      /> */}
-
-      {/* Move To Contract Dialog */}
-      {/* <MoveToContractDialog
-        customer={movingToContractCustomer}
-        onClose={() => setMovingToContractCustomer(null)}
-        onMoveToContract={handleMoveToContract}
-      /> */}
+      />
 
       {/* Delete Customer Dialog */}
-      {/* <DeleteCustomerDialog
+      <DeleteCustomerDialog
         customer={deletingCustomer}
         onClose={() => setDeletingCustomer(null)}
         onDeleteCustomer={handleDeleteCustomer}
-      /> */}
+      />
     </div>
   );
 }
