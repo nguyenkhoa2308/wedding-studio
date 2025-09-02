@@ -576,7 +576,7 @@ export default function AppointmentsPage() {
       </div>
 
       {/* Appointments List */}
-      <div className="mobile-spacing">
+      <div className="">
         {appointments.map((appointment) => (
           <AppointmentCard
             key={appointment.id}

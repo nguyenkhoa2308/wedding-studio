@@ -537,6 +537,7 @@ export default function CRMPage() {
 
       <CreateContractDialog
         customer={creatingContractCustomer}
+        onSave={() => setSelectedCustomer(null)}
         onClose={() => setCreatingContractCustomer(null)}
         onCreateContract={handleCreateContract}
       />

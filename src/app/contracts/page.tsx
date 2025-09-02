@@ -187,6 +187,8 @@ function StatusChangeDialog({
         !formData.shootingTime ||
         !formData.location
       ) {
+        console.log("Form Data:", formData);
+
         toast.error("Vui lòng điền đầy đủ thông tin lịch chụp");
         return;
       }
@@ -402,6 +404,8 @@ export default function ContractsPage() {
   };
 
   const handleStatusChangeConfirm = async (data: any) => {
+    console.log("Hello", data);
+
     if (!selectedContractForStatus) return;
 
     try {
