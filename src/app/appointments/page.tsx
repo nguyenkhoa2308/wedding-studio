@@ -161,7 +161,7 @@ interface NewAppointment {
   notes: string;
 }
 export default function AppointmentsPage() {
-  const { appointments, updateAppointment } = useAppointments();
+  const { appointments } = useAppointments();
   // Status change dialog states
   const [isStatusChangeOpen, setIsStatusChangeOpen] = useState(false);
   const [selectedAppointmentForStatus, setSelectedAppointmentForStatus] =

@@ -14,6 +14,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import CustomSelect from "@/components/CustomSelect";
+import { usePricing } from "@/contexts/PricingContext";
 
 interface CreateContractDialogProps {
   customer: any;
@@ -102,7 +103,7 @@ export default function CreateContractDialog({
   onSave,
   onCreateContract,
 }: CreateContractDialogProps) {
-  const services = mockServices;
+  const { services } = usePricing();
 
   const [formData, setFormData] = useState({
     contractName: "",
@@ -184,7 +185,7 @@ export default function CreateContractDialog({
   }, [services]);
 
   // Filter services for search
-  const filteredMainServices = allServices.filter((service) =>
+  const filteredMainServices = services.items.filter((service) =>
     service.name.toLowerCase().includes(mainServiceSearch.toLowerCase())
   );
 

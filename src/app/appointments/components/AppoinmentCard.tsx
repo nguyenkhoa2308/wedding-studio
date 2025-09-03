@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Appointment } from "@/types";
 import StatusChangeDialog from "./StatusChangeDialog";
+import { useAppointments } from "@/contexts/AppointmentsContext";
 
 // ===== Types =====
 export type TabKey = "overview" | "staff" | "customer";
@@ -91,6 +92,7 @@ export default function AppointmentCard({
   onViewClick,
   onEditClick,
 }: AppointmentCardProps) {
+  const { updateAppointment } = useAppointments();
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [isStatusChangeOpen, setIsStatusChangeOpen] = useState(false);
   const [targetStatus, setTargetStatus] =
@@ -145,7 +147,7 @@ export default function AppointmentCard({
       }
 
       // Update appointment - this will trigger auto contract sync if completing
-      // await updateAppointment(selectedAppointmentForStatus.id, updates);
+      await updateAppointment(selectedAppointmentForStatus.id, updates);
 
       // toast.success(
       //   `Đã cập nhật trạng thái lịch hẹn thành "${

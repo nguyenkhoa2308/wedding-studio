@@ -181,35 +181,35 @@ function StatusChangeDialog({
     e.preventDefault();
 
     // Validate required fields based on status
-    if (newStatus === "scheduled") {
-      if (
-        !formData.shootingDate ||
-        !formData.shootingTime ||
-        !formData.location
-      ) {
-        console.log("Form Data:", formData);
+    // if (newStatus === "scheduled") {
+    //   if (
+    //     !formData.shootingDate ||
+    //     !formData.shootingTime ||
+    //     !formData.location
+    //   ) {
+    //     console.log("Form Data:", formData);
 
-        toast.error("Vui lòng điền đầy đủ thông tin lịch chụp");
-        return;
-      }
-    } else if (newStatus === "retouch") {
-      if (!formData.estimatedDays) {
-        toast.error("Vui lòng điền thời gian dự kiến retouch");
-        return;
-      }
-    } else if (newStatus === "handover") {
-      // No required fields for handover transition
-    } else if (newStatus === "completed") {
-      if (!formData.deliveryDate) {
-        toast.error("Vui lòng điền ngày bàn giao");
-        return;
-      }
-    } else if (newStatus === "cancelled") {
-      if (!formData.cancellationReason) {
-        toast.error("Vui lòng điền lý do hủy hợp đồng");
-        return;
-      }
-    }
+    //     toast.error("Vui lòng điền đầy đủ thông tin lịch chụp");
+    //     return;
+    //   }
+    // } else if (newStatus === "retouch") {
+    //   if (!formData.estimatedDays) {
+    //     toast.error("Vui lòng điền thời gian dự kiến retouch");
+    //     return;
+    //   }
+    // } else if (newStatus === "handover") {
+    //   // No required fields for handover transition
+    // } else if (newStatus === "completed") {
+    //   if (!formData.deliveryDate) {
+    //     toast.error("Vui lòng điền ngày bàn giao");
+    //     return;
+    //   }
+    // } else if (newStatus === "cancelled") {
+    //   if (!formData.cancellationReason) {
+    //     toast.error("Vui lòng điền lý do hủy hợp đồng");
+    //     return;
+    //   }
+    // }
 
     onConfirm({
       status: newStatus,
