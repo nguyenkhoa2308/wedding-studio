@@ -1,13 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { AdditionalPricingService, Service, ServicesData } from "@/types";
+import { AdditionalPricingService, Service } from "@/types";
 
 interface PricingContextType {
-  services: ServicesData;
-  addService: (category: keyof ServicesData, service: Service) => void;
-  editService: (category: keyof ServicesData, service: Service) => void;
-  deleteService: (category: keyof ServicesData, serviceId: string) => void;
+  services: {
+    items: Service[];
+    additional: AdditionalPricingService[];
+  };
+  addService: (service: Service) => void;
+  editService: (service: Service) => void;
+  deleteService: (serviceId: string) => void;
   addAdditionalService: (service: AdditionalPricingService) => void;
   editAdditionalService: (service: AdditionalPricingService) => void;
   deleteAdditionalService: (serviceId: string) => void;
@@ -202,240 +205,205 @@ const initialAdditionalServices: AdditionalPricingService[] = [
 ];
 
 // Initial services data
-const initialServicesData: ServicesData = {
-  prewedding: [
-    {
-      id: "half-day",
-      name: "Gói chụp nửa ngày",
-      price: "6990000",
-      originalPrice: null,
-      duration: "4 tiếng",
-      location: "Studio",
-      popular: false,
-      image:
-        "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
-      description:
-        "Gói chụp ảnh cưới cơ bản phù hợp cho các cặp đôi có ngân sách vừa phải, vẫn đảm bảo chất lượng ảnh đẹp và dịch vụ chuyên nghiệp.",
-      features: [
-        "Chụp tại studio của Plannie",
-        "Thời gian chụp 4 tiếng (bao gồm cả makeup)",
-        "01 váy cưới của Plannie",
-        "Makeup và làm tóc theo trang phục",
-        "02 ảnh ép gỗ 60x90cm",
-        "15 ảnh chỉnh sửa hoàn thiện",
-        "Toàn bộ files ảnh gốc",
-      ],
-      stats: {
-        active: 5,
-        completed: 32,
-        totalRevenue: 223680000,
-      },
+const initialServicesData: Service[] = [
+  {
+    id: "half-day",
+    name: "Gói chụp nửa ngày",
+    price: "6990000",
+    location: "Studio",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
+    description:
+      "Gói chụp ảnh cưới cơ bản phù hợp cho các cặp đôi có ngân sách vừa phải, vẫn đảm bảo chất lượng ảnh đẹp và dịch vụ chuyên nghiệp.",
+    features: [
+      "Chụp tại studio của Plannie",
+      "Thời gian chụp 4 tiếng (bao gồm cả makeup)",
+      "01 váy cưới của Plannie",
+      "Makeup và làm tóc theo trang phục",
+      "02 ảnh ép gỗ 60x90cm",
+      "15 ảnh chỉnh sửa hoàn thiện",
+      "Toàn bộ files ảnh gốc",
+    ],
+    stats: {
+      active: 5,
+      completed: 32,
+      totalRevenue: 223680000,
     },
-    {
-      id: "studio",
-      name: "Gói chụp tại studio",
-      price: "11990000",
-      originalPrice: null,
-      duration: "1 ngày",
-      location: "02 địa điểm studio",
-      popular: true,
-      image:
-        "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=600",
-      description:
-        "Gói tiêu chuẩn với dịch vụ hoàn chỉnh, bao gồm nhiều địa điểm chụp và sản phẩm đa dạng. Lựa chọn phổ biến nhất của khách hàng.",
-      features: [
-        "Áp dụng cho 02 địa điểm studio bất kỳ",
-        "01 váy cưới tự chọn",
-        "01 vest chú rể tự chọn",
-        "Makeup và làm tóc theo trang phục",
-        "01 album Hàn Quốc chất lượng cao (size 20x30cm, 15 tờ/30 trang)",
-        "02 ảnh ép gỗ 60x90cm",
-        "01 slideshow trình chiếu",
-        "50 ảnh chỉnh sửa hoàn thiện",
-        "Toàn bộ files ảnh gốc",
-      ],
-      stats: {
-        active: 12,
-        completed: 78,
-        totalRevenue: 935220000,
-      },
+  },
+  {
+    id: "studio",
+    name: "Gói chụp tại studio",
+    price: "11990000",
+    location: "02 địa điểm studio",
+    image: "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=600",
+    description:
+      "Gói tiêu chuẩn với dịch vụ hoàn chỉnh, bao gồm nhiều địa điểm chụp và sản phẩm đa dạng. Lựa chọn phổ biến nhất của khách hàng.",
+    features: [
+      "Áp dụng cho 02 địa điểm studio bất kỳ",
+      "01 váy cưới tự chọn",
+      "01 vest chú rể tự chọn",
+      "Makeup và làm tóc theo trang phục",
+      "01 album Hàn Quốc chất lượng cao (size 20x30cm, 15 tờ/30 trang)",
+      "02 ảnh ép gỗ 60x90cm",
+      "01 slideshow trình chiếu",
+      "50 ảnh chỉnh sửa hoàn thiện",
+      "Toàn bộ files ảnh gốc",
+    ],
+    stats: {
+      active: 12,
+      completed: 78,
+      totalRevenue: 935220000,
     },
-  ],
-  video: [
-    {
-      id: "video-1",
-      name: "Gói quay Pre-wedding 1",
-      price: "8000000",
-      originalPrice: null,
-      duration: "3-5 phút",
-      location: "Tùy chọn",
-      popular: false,
-      image:
-        "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=600",
-      description:
-        "Gói quay video cơ bản với 1 camera, phù hợp cho các cặp đôi muốn có video kỷ niệm đơn giản nhưng chất lượng.",
-      features: [
-        "Ekip 01 Camera",
-        "01 video thời lượng 03-05 phút",
-        "Chỉnh sửa chuyên nghiệp",
-        "Nhạc nền bản quyền",
-        "File video Full HD",
-        "Giao hàng trong 14 ngày",
-      ],
-      stats: {
-        active: 4,
-        completed: 22,
-        totalRevenue: 176000000,
-      },
+  },
+  {
+    id: "video-1",
+    name: "Gói quay Pre-wedding 1",
+    price: "8000000",
+    location: "Tùy chọn",
+    image: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=600",
+    description:
+      "Gói quay video cơ bản với 1 camera, phù hợp cho các cặp đôi muốn có video kỷ niệm đơn giản nhưng chất lượng.",
+    features: [
+      "Ekip 01 Camera",
+      "01 video thời lượng 03-05 phút",
+      "Chỉnh sửa chuyên nghiệp",
+      "Nhạc nền bản quyền",
+      "File video Full HD",
+      "Giao hàng trong 14 ngày",
+    ],
+    stats: {
+      active: 4,
+      completed: 22,
+      totalRevenue: 176000000,
     },
-    {
-      id: "video-2",
-      name: "Gói quay Pre-wedding 2",
-      price: "12000000",
-      originalPrice: null,
-      duration: "3-5 phút",
-      location: "Tùy chọn",
-      popular: true,
-      image:
-        "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600",
-      description:
-        "Gói quay video cao cấp với 2 camera, mang lại góc quay đa dạng và chất lượng hình ảnh tuyệt vời.",
-      features: [
-        "Ekip 02 Camera",
-        "01 video thời lượng 03-05 phút",
-        "Góc quay đa dạng",
-        "Chỉnh sửa chuyên nghiệp",
-        "Nhạc nền bản quyền",
-        "File video 4K",
-        "Trailer ngắn 30s",
-        "Giao hàng trong 10 ngày",
-      ],
-      stats: {
-        active: 7,
-        completed: 35,
-        totalRevenue: 420000000,
-      },
+  },
+  {
+    id: "video-2",
+    name: "Gói quay Pre-wedding 2",
+    price: "12000000",
+    location: "Tùy chọn",
+    image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600",
+    description:
+      "Gói quay video cao cấp với 2 camera, mang lại góc quay đa dạng và chất lượng hình ảnh tuyệt vời.",
+    features: [
+      "Ekip 02 Camera",
+      "01 video thời lượng 03-05 phút",
+      "Góc quay đa dạng",
+      "Chỉnh sửa chuyên nghiệp",
+      "Nhạc nền bản quyền",
+      "File video 4K",
+      "Trailer ngắn 30s",
+      "Giao hàng trong 10 ngày",
+    ],
+    stats: {
+      active: 7,
+      completed: 35,
+      totalRevenue: 420000000,
     },
-  ],
-  family: [
-    {
-      id: "family-studio",
-      name: "Gói chụp gia đình (trong studio)",
-      price: "6000000",
-      originalPrice: null,
-      duration: "2-3 tiếng",
-      location: "Studio",
-      popular: false,
-      image:
-        "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=600",
-      description:
-        "Gói chụp ảnh gia đình trong studio với không gian ấm cúng, phù hợp cho các gia đình có trẻ nhỏ.",
-      features: [
-        "01 thợ chụp",
-        "Tặng 01 mặt trang điểm",
-        "Toàn bộ files ảnh gốc",
-        "30 ảnh chỉnh sửa",
-        "01 album Hàn Quốc chất lượng cao (size 20x20cm, 10 tờ/20 trang) hoặc 01 ảnh phóng ép gỗ 60x90cm",
-        "Áp dụng cho tối đa 06 người",
-        "Phụ thu 500.000 VND/người nếu thêm người",
-        "Phụ thu thêm 500.000 VND/mặt trang điểm",
-      ],
-      stats: {
-        active: 6,
-        completed: 48,
-        totalRevenue: 288000000,
-      },
+  },
+  {
+    id: "family-studio",
+    name: "Gói chụp gia đình (trong studio)",
+    price: "6000000",
+    location: "Studio",
+    image: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=600",
+    description:
+      "Gói chụp ảnh gia đình trong studio với không gian ấm cúng, phù hợp cho các gia đình có trẻ nhỏ.",
+    features: [
+      "01 thợ chụp",
+      "Tặng 01 mặt trang điểm",
+      "Toàn bộ files ảnh gốc",
+      "30 ảnh chỉnh sửa",
+      "01 album Hàn Quốc chất lượng cao (size 20x20cm, 10 tờ/20 trang) hoặc 01 ảnh phóng ép gỗ 60x90cm",
+      "Áp dụng cho tối đa 06 người",
+      "Phụ thu 500.000 VND/người nếu thêm người",
+      "Phụ thu thêm 500.000 VND/mặt trang điểm",
+    ],
+    stats: {
+      active: 6,
+      completed: 48,
+      totalRevenue: 288000000,
     },
-  ],
-  documentary: [
-    {
-      id: "doc-photo-1day",
-      name: "Gói 1 ngày (Chụp)",
-      price: "10000000",
-      originalPrice: null,
-      duration: "1 ngày",
-      location: "Cùng địa điểm",
-      popular: false,
-      image:
-        "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
-      description:
-        "Gói chụp phóng sự cưới trong cùng 1 ngày cho các cặp đôi tổ chức tất cả nghi lễ tại một địa điểm.",
-      features: [
-        "Áp dụng: Cô dâu, chú rể tổ chức ăn hỏi, lễ cưới, và tiệc cưới trong cùng một ngày",
-        "Ekip 02 thợ chụp",
-        "01 album Photobook (size 30x30cm, 20 tờ/40 trang)",
-        "Toàn bộ files ảnh gốc",
-        "80 ảnh chỉnh sửa",
-        "Backup dữ liệu an toàn",
-      ],
-      stats: {
-        active: 8,
-        completed: 42,
-        totalRevenue: 420000000,
-      },
+  },
+  {
+    id: "doc-photo-1day",
+    name: "Gói 1 ngày (Chụp)",
+    price: "10000000",
+    location: "Cùng địa điểm",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
+    description:
+      "Gói chụp phóng sự cưới trong cùng 1 ngày cho các cặp đôi tổ chức tất cả nghi lễ tại một địa điểm.",
+    features: [
+      "Áp dụng: Cô dâu, chú rể tổ chức ăn hỏi, lễ cưới, và tiệc cưới trong cùng một ngày",
+      "Ekip 02 thợ chụp",
+      "01 album Photobook (size 30x30cm, 20 tờ/40 trang)",
+      "Toàn bộ files ảnh gốc",
+      "80 ảnh chỉnh sửa",
+      "Backup dữ liệu an toàn",
+    ],
+    stats: {
+      active: 8,
+      completed: 42,
+      totalRevenue: 420000000,
     },
-  ],
-  combo: [
-    {
-      id: "combo-1",
-      name: "Combo 1 (Pre-wedding Studio + PSC)",
-      price: "32990000",
-      originalPrice: "34990000",
-      duration: "Combo tiết kiệm",
-      location: "Studio + PSC",
-      popular: true,
-      image:
-        "https://images.unsplash.com/photo-1594736797933-d0ab737b09bb?w=600",
-      description:
-        "Combo tiết kiệm bao gồm chụp pre-wedding tại studio và phóng sự cưới, phù hợp cho các cặp đôi muốn có trải nghiệm hoàn chỉnh với giá hợp lý.",
-      features: [
-        "Pre-wedding Studio: Ekip 01 thợ chính, 01 thợ phụ, 01 makeup",
-        "Chụp 01 ngày; 01 váy cưới tự chọn, 01 vest chú rể tự chọn",
-        "Makeup và làm tóc, 01 album Hàn Quốc (20x30cm, 15 tờ/30 trang)",
-        "02 ảnh ép gỗ 60x90cm, 01 slideshow, 50 ảnh chỉnh sửa",
-        "Chụp PSC: Ekip 02 thợ chụp; chụp Lễ cưới, Tiệc cưới",
-        "01 album Photobook (30x30cm, 20 tờ/40 trang), 80 ảnh chỉnh sửa",
-        "Quay PSC: Ekip 02 Camera; 01 video thời lượng 03-05 phút",
-      ],
-      stats: {
-        active: 8,
-        completed: 28,
-        totalRevenue: 923720000,
-      },
+  },
+  {
+    id: "combo-1",
+    name: "Combo 1 (Pre-wedding Studio + PSC)",
+    price: "32990000",
+    location: "Studio + PSC",
+    image: "https://images.unsplash.com/photo-1594736797933-d0ab737b09bb?w=600",
+    description:
+      "Combo tiết kiệm bao gồm chụp pre-wedding tại studio và phóng sự cưới, phù hợp cho các cặp đôi muốn có trải nghiệm hoàn chỉnh với giá hợp lý.",
+    features: [
+      "Pre-wedding Studio: Ekip 01 thợ chính, 01 thợ phụ, 01 makeup",
+      "Chụp 01 ngày; 01 váy cưới tự chọn, 01 vest chú rể tự chọn",
+      "Makeup và làm tóc, 01 album Hàn Quốc (20x30cm, 15 tờ/30 trang)",
+      "02 ảnh ép gỗ 60x90cm, 01 slideshow, 50 ảnh chỉnh sửa",
+      "Chụp PSC: Ekip 02 thợ chụp; chụp Lễ cưới, Tiệc cưới",
+      "01 album Photobook (30x30cm, 20 tờ/40 trang), 80 ảnh chỉnh sửa",
+      "Quay PSC: Ekip 02 Camera; 01 video thời lượng 03-05 phút",
+    ],
+    stats: {
+      active: 8,
+      completed: 28,
+      totalRevenue: 923720000,
     },
-  ],
-  additional: initialAdditionalServices,
-};
+  },
+];
 
 export function PricingProvider({ children }: { children: ReactNode }) {
-  const [services, setServices] = useState<ServicesData>(initialServicesData);
+  const [services, setServices] = useState<{
+    items: Service[];
+    additional: AdditionalPricingService[];
+  }>({
+    items: initialServicesData,
+    additional: initialAdditionalServices,
+  });
 
-  const addService = (category: keyof ServicesData, service: Service) => {
+  // --- CRUD cho main services (KHÔNG còn category) ---
+  const addService = (service: Service) => {
     setServices((prev) => ({
       ...prev,
-      [category]: [service, ...prev[category]],
+      items: [service, ...prev.items],
+    }));
+  };
+  console.log(services);
+
+  const editService = (updated: Service) => {
+    setServices((prev) => ({
+      ...prev,
+      items: prev.items.map((s) => (s.id === updated.id ? updated : s)),
     }));
   };
 
-  const editService = (
-    category: keyof ServicesData,
-    updatedService: Service
-  ) => {
+  const deleteService = (serviceId: string) => {
     setServices((prev) => ({
       ...prev,
-      [category]: prev[category].map((service) =>
-        service.id === updatedService.id ? updatedService : service
-      ),
+      items: prev.items.filter((s) => s.id !== serviceId),
     }));
   };
 
-  const deleteService = (category: keyof ServicesData, serviceId: string) => {
-    setServices((prev) => ({
-      ...prev,
-      [category]: prev[category].filter((service) => service.id !== serviceId),
-    }));
-  };
-
+  // --- CRUD cho additional services ---
   const addAdditionalService = (service: AdditionalPricingService) => {
     setServices((prev) => ({
       ...prev,
@@ -443,11 +411,11 @@ export function PricingProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const editAdditionalService = (updatedService: AdditionalPricingService) => {
+  const editAdditionalService = (updated: AdditionalPricingService) => {
     setServices((prev) => ({
       ...prev,
-      additional: prev.additional.map((service) =>
-        service.id === updatedService.id ? updatedService : service
+      additional: prev.additional.map((s) =>
+        s.id === updated.id ? updated : s
       ),
     }));
   };
@@ -455,7 +423,7 @@ export function PricingProvider({ children }: { children: ReactNode }) {
   const deleteAdditionalService = (serviceId: string) => {
     setServices((prev) => ({
       ...prev,
-      additional: prev.additional.filter((service) => service.id !== serviceId),
+      additional: prev.additional.filter((s) => s.id !== serviceId),
     }));
   };
 

@@ -206,9 +206,8 @@ export interface Service {
   name: string;
   price: string;
   originalPrice?: string | null;
-  duration: string;
+  duration?: string;
   location: string;
-  popular: boolean;
   image: string;
   description: string;
   features: string[];

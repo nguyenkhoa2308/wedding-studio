@@ -18,6 +18,7 @@ import CustomSelect from "@/components/CustomSelect";
 interface CreateContractDialogProps {
   customer: any;
   onClose: () => void;
+  onSave: () => void;
   onCreateContract: (customer: any, contractData: any) => void;
 }
 
@@ -98,6 +99,7 @@ const toast = {
 export default function CreateContractDialog({
   customer,
   onClose,
+  onSave,
   onCreateContract,
 }: CreateContractDialogProps) {
   const services = mockServices;
@@ -364,6 +366,7 @@ export default function CreateContractDialog({
 
       toast.success(`Đã tạo hợp đồng "${formData.contractName}" thành công`);
       handleClose();
+      onSave();
     } catch (error) {
       console.error("Error creating contract:", error);
       toast.error("Không thể tạo hợp đồng. Vui lòng thử lại");

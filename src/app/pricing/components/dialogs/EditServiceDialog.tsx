@@ -300,51 +300,6 @@ export function EditServiceDialog({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label
-                          htmlFor="originalPrice"
-                          className="block text-sm font-medium text-slate-700"
-                        >
-                          Giá gốc (VND)
-                        </label>
-                        <input
-                          id="originalPrice"
-                          inputMode="numeric"
-                          value={formData.originalPrice}
-                          onChange={(e) =>
-                            setFormData((s) => ({
-                              ...s,
-                              originalPrice: formatPriceInput(e.target.value),
-                            }))
-                          }
-                          placeholder="0"
-                          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label
-                          htmlFor="duration"
-                          className="block text-sm font-medium text-slate-700"
-                        >
-                          Thời gian thực hiện
-                        </label>
-                        <input
-                          id="duration"
-                          value={formData.duration}
-                          onChange={(e) =>
-                            setFormData((s) => ({
-                              ...s,
-                              duration: e.target.value,
-                            }))
-                          }
-                          placeholder="VD: 1 ngày, 4 tiếng"
-                          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-
                     <div>
                       <label
                         htmlFor="location"
@@ -462,36 +417,6 @@ export function EditServiceDialog({
                         ))}
                       </div>
                     )}
-                  </section>
-
-                  {/* Popular switch */}
-                  <section className="flex items-center justify-between p-4 bg-blue-50/50 border border-blue-100 rounded-lg">
-                    <div>
-                      <span className="block text-sm font-medium text-slate-900">
-                        Đánh dấu phổ biến
-                      </span>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Dịch vụ này sẽ được đánh dấu là “Phổ biến nhất”
-                      </p>
-                    </div>
-
-                    {/* Custom toggle (checkbox) */}
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="peer sr-only"
-                        checked={formData.popular}
-                        onChange={(e) =>
-                          setFormData((s) => ({
-                            ...s,
-                            popular: e.target.checked,
-                          }))
-                        }
-                        aria-label="Đánh dấu dịch vụ phổ biến"
-                      />
-                      <div className="w-11 h-6 bg-slate-300 rounded-full transition peer-checked:bg-blue-600" />
-                      <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition peer-checked:translate-x-5" />
-                    </label>
                   </section>
                 </div>
               </form>
