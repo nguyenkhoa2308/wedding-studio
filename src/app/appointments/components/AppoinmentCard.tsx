@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useMemo, useState, type ComponentType } from "react";
@@ -340,7 +341,7 @@ export default function AppointmentCard({
 function OverviewPanel({ appointment }: { appointment: Appointment }) {
   return (
     <div className="space-y-4">
-      <div className="grid mobile-grid gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <InfoCard
           tone="blue"
           label="Gói dịch vụ"

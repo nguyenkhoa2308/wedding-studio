@@ -657,6 +657,9 @@ export function ContractsProvider({ children }: { children: ReactNode }) {
       }
     ): Contract => {
       const contractValue = parseInt(contractData.value);
+
+      console.log("ssssss", contractValue);
+
       const depositAmount = Math.floor(contractValue * 0.3); // 30% deposit
 
       // Transfer notes from CRM to contract noteHistory

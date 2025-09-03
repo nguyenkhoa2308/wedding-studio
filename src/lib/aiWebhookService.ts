@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // AI Webhook Service for generating note summaries
 // This service simulates calling an AI API to generate summaries of contract notes
 

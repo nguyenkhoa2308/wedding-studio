@@ -4,27 +4,17 @@ import { useState } from "react";
 import {
   Calendar,
   Plus,
-  MapPin,
   Clock,
-  Phone,
-  Mail,
   Users,
   Camera,
-  Edit,
-  Trash2,
-  Eye,
   X,
   Search,
   CheckCircle,
-  User,
-  UserCheck,
   AlertTriangle,
 } from "lucide-react";
 import { DatePicker } from "antd";
-import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
-import viVN from "antd/locale/vi_VN";
 import { Appointment, AppointmentStatus } from "@/types";
 import { useAppointments } from "@/contexts/AppointmentsContext";
 import AppointmentCard from "./components/AppoinmentCard";

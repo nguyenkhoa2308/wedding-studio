@@ -210,7 +210,6 @@ export default function RootLayout({
                       {children}
                     </main>
                   </AuthWrapper>
-
                   {/* </PrivateRoute> */}
                 </PricingProvider>
               </AppointmentsProvider>
