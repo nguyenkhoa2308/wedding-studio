@@ -1,7 +1,17 @@
 "use client";
 
 import { Appointment } from "@/types";
-import { Calendar, Camera, Clock, Edit, Mail, MapPin, Phone, Users, X } from "lucide-react";
+import {
+  Calendar,
+  Camera,
+  Clock,
+  Edit,
+  Mail,
+  MapPin,
+  Phone,
+  Users,
+  X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface Props {
@@ -11,7 +21,12 @@ interface Props {
   onEdit?: (a: Appointment) => void;
 }
 
-export default function AppointmentDetailDialog({ isOpen, appointment, onClose, onEdit }: Props) {
+export default function AppointmentDetailDialog({
+  isOpen,
+  appointment,
+  onClose,
+  onEdit,
+}: Props) {
   if (!isOpen || !appointment) return null;
 
   return (
@@ -32,10 +47,18 @@ export default function AppointmentDetailDialog({ isOpen, appointment, onClose, 
         >
           <div className="p-4 sm:p-6 border-b border-slate-200 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">Chi tiết lịch hẹn</h3>
-              <p className="text-slate-600 text-sm">#{appointment.contractNumber}</p>
+              <h3 className="text-lg font-semibold text-slate-900">
+                Chi tiết lịch hẹn
+              </h3>
+              <p className="text-slate-600 text-sm">
+                #{appointment.contractNumber}
+              </p>
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100">
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-slate-100"
+              title="Đóng"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -47,7 +70,9 @@ export default function AppointmentDetailDialog({ isOpen, appointment, onClose, 
                 <Calendar className="w-4 h-4 text-slate-500 mt-1" />
                 <div>
                   <p className="text-sm text-slate-500">Ngày giờ chụp</p>
-                  <p className="font-medium">{appointment.date} {appointment.time}</p>
+                  <p className="font-medium">
+                    {appointment.date} {appointment.time}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -94,23 +119,39 @@ export default function AppointmentDetailDialog({ isOpen, appointment, onClose, 
                 <Phone className="w-4 h-4 text-slate-500 mt-1" />
                 <div>
                   <p className="text-sm text-slate-500">Điện thoại</p>
-                  <p className="font-medium">{appointment.customerPhone ?? "—"}</p>
+                  <p className="font-medium">
+                    {appointment.customerPhone ?? "—"}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Mail className="w-4 h-4 text-slate-500 mt-1" />
                 <div>
                   <p className="text-sm text-slate-500">Email</p>
-                  <p className="font-medium">{appointment.customerEmail ?? "—"}</p>
+                  <p className="font-medium">
+                    {appointment.customerEmail ?? "—"}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Team */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <InfoBox icon={<Camera className="w-4 h-4 text-blue-600" />} title="Chụp chính" value={appointment.photographer ?? "—"} />
-              <InfoBox icon={<Camera className="w-4 h-4 text-slate-600" />} title="Chụp phụ" value={appointment.assistant ?? "—"} />
-              <InfoBox icon={<Users className="w-4 h-4 text-pink-600" />} title="Makeup" value={appointment.makeup ?? "—"} />
+              <InfoBox
+                icon={<Camera className="w-4 h-4 text-blue-600" />}
+                title="Chụp chính"
+                value={appointment.photographer ?? "—"}
+              />
+              <InfoBox
+                icon={<Camera className="w-4 h-4 text-slate-600" />}
+                title="Chụp phụ"
+                value={appointment.assistant ?? "—"}
+              />
+              <InfoBox
+                icon={<Users className="w-4 h-4 text-pink-600" />}
+                title="Makeup"
+                value={appointment.makeup ?? "—"}
+              />
             </div>
 
             {appointment.notes && (
@@ -145,7 +186,15 @@ export default function AppointmentDetailDialog({ isOpen, appointment, onClose, 
   );
 }
 
-function InfoBox({ icon, title, value }: { icon: React.ReactNode; title: string; value: string }) {
+function InfoBox({
+  icon,
+  title,
+  value,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+}) {
   return (
     <div className="p-3 border border-slate-200 rounded-lg bg-white">
       <div className="flex items-center gap-2 mb-1">
