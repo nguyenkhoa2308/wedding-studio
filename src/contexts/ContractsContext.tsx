@@ -17,11 +17,21 @@ interface ContractsContextType {
   createAndAddContractFromCustomer: (
     customer: any,
     contractData: {
-      value: string;
-      date: string;
+      value: string; // pre-discount or total
+      finalValue?: string; // after discount
+      discountPercent?: string;
+      date: string; // signed date
       contractName: string;
       weddingDate: string;
-      package: string;
+      package: string; // package key or label
+      payments?: Array<{
+        date: string;
+        description: string;
+        amount: number | string;
+        status: string; // pending | completed | cancelled
+        notes?: string;
+      }>;
+      additionalServices?: Array<{ id: string; name: string; price: string }>;
       image?: string;
       note?: string;
     }
@@ -648,19 +658,34 @@ export function ContractsProvider({ children }: { children: ReactNode }) {
       customer: any,
       contractData: {
         value: string;
+        finalValue?: string;
+        discountPercent?: string;
         date: string;
         contractName: string;
         weddingDate: string;
         package: string;
+        payments?: Array<{
+          date: string;
+          description: string;
+          amount: number | string;
+          status: string;
+          notes?: string;
+        }>;
+        additionalServices?: Array<{ id: string; name: string; price: string }>;
         image?: string;
         note?: string;
       }
     ): Contract => {
-      const contractValue = parseInt(contractData.value);
-
-      console.log("ssssss", contractValue);
-
-      const depositAmount = Math.floor(contractValue * 0.3); // 30% deposit
+      // Determine total value after discount (prefer finalValue)
+      const totalAfterDiscount = parseInt(
+        (contractData.finalValue || "").toString().replace(/\D/g, "")
+      );
+      const fallbackTotal = parseInt(
+        (contractData.value || "").toString().replace(/\D/g, "")
+      );
+      const contractValue = isNaN(totalAfterDiscount)
+        ? fallbackTotal || 0
+        : totalAfterDiscount;
 
       // Transfer notes from CRM to contract noteHistory
       const noteHistory: NoteHistory[] = [];
@@ -679,50 +704,56 @@ export function ContractsProvider({ children }: { children: ReactNode }) {
         });
       }
 
+      // Map incoming payments to paymentSchedule
+      const mappedSchedule = (contractData.payments || [])
+        .filter((p) => (p.amount || "").toString().trim() !== "")
+        .map((p) => {
+          const amountNum = parseInt(p.amount as string);
+          const status = p.status === "completed" ? "paid" : "pending";
+          return {
+            phase: p.description || "Thanh toán",
+            amount: isNaN(amountNum) ? 0 : amountNum,
+            dueDate: p.date,
+            status: status as "paid" | "pending" | "overdue",
+            paidDate: status === "paid" ? p.date : undefined,
+          };
+        });
+
+      const paidAmountCalc = mappedSchedule
+        .filter((p) => p.status === "paid")
+        .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+      const remainingAmountCalc = Math.max(contractValue - paidAmountCalc, 0);
+
+      const additionalServices = (contractData.additionalServices || []).map(
+        (s, idx) => ({
+          id: idx + 1,
+          name: s.name,
+          price: parseInt((s.price || "0").toString().replace(/\D/g, "")) || 0,
+          addedDate: new Date().toISOString().split("T")[0],
+          description: undefined,
+        })
+      );
+
       const newContract: Contract = {
         id: Date.now(),
         contractNumber: generateContractNumber(),
         couple: contractData.contractName,
         package: packageMapping[contractData.package] || contractData.package,
         totalAmount: contractValue,
-        paidAmount: 0, // Set to 0 as requested - no payment made yet
-        remainingAmount: contractValue, // Full amount remaining
-        progress: 0, // 0% progress since no payment made
+        paidAmount: paidAmountCalc,
+        remainingAmount: remainingAmountCalc,
+        progress:
+          contractValue > 0
+            ? Math.round((paidAmountCalc / contractValue) * 100)
+            : 0,
         signedDate: contractData.date,
         weddingDate: contractData.weddingDate || customer.weddingDate || "",
         status: "waiting_schedule",
         services:
           servicePackages[contractData.package] || servicePackages.custom,
-        additionalServices: [], // Initialize empty additional services
-        paymentSchedule: [
-          {
-            phase: "Ký hợp đồng",
-            amount: depositAmount,
-            dueDate: contractData.date,
-            status: "pending", // Changed from "paid" to "pending"
-            // Remove paidDate since no payment made yet
-          },
-          {
-            phase: "Trước buổi chụp 1 tuần",
-            amount: Math.floor(contractValue * 0.4),
-            dueDate: new Date(
-              new Date(contractData.date).getTime() + 30 * 24 * 60 * 60 * 1000
-            )
-              .toISOString()
-              .split("T")[0],
-            status: "pending",
-          },
-          {
-            phase: "Giao album",
-            amount: Math.floor(contractValue * 0.3),
-            dueDate: new Date(
-              new Date(contractData.date).getTime() + 60 * 24 * 60 * 60 * 1000
-            )
-              .toISOString()
-              .split("T")[0],
-            status: "pending",
-          },
-        ],
+        additionalServices: additionalServices,
+        paymentSchedule: mappedSchedule,
         customerName: customer.name,
         customerEmail: customer.email,
         customerPhone: customer.phone,
@@ -761,10 +792,20 @@ export function ContractsProvider({ children }: { children: ReactNode }) {
       customer: any,
       contractData: {
         value: string;
+        finalValue?: string;
+        discountPercent?: string;
         date: string;
         contractName: string;
         weddingDate: string;
         package: string;
+        payments?: Array<{
+          date: string;
+          description: string;
+          amount: number | string;
+          status: string;
+          notes?: string;
+        }>;
+        additionalServices?: Array<{ id: string; name: string; price: string }>;
         image?: string;
         note?: string;
       }

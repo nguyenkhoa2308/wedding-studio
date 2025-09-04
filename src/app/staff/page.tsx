@@ -19,6 +19,7 @@ import {
   Search,
   Users,
 } from "lucide-react";
+import CustomSelect from "@/components/CustomSelect";
 
 // Simplified mock staff data
 const mockStaff: StaffMember[] = [
@@ -84,11 +85,92 @@ const mockStaff: StaffMember[] = [
   },
 ];
 
+function AddStaffDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => void; onAdd: (s: StaffMember) => void }) {
+  const [form, setForm] = useState({ name: "", email: "", phone: "", department: "", position: "" });
+  const [errors, setErrors] = useState<{ [k: string]: string }>({});
+  const deptOptions = [
+    { value: "Photography", label: "Photography" },
+    { value: "Makeup", label: "Makeup" },
+    { value: "Post-Production", label: "Post-Production" },
+    { value: "Operations", label: "Operations" },
+    { value: "Design", label: "Design" },
+  ];
+
+  const validate = () => {
+    const errs: { [k: string]: string } = {};
+    if (!form.name.trim()) errs.name = "Vui lòng nhập họ tên";
+    if (!form.email.trim() || !/^\S+@\S+\.\S+$/.test(form.email)) errs.email = "Email không hợp lệ";
+    if (!form.phone.trim() || !/^(0|\+84)[0-9]{8,10}$/.test(form.phone.replace(/\s/g, ""))) errs.phone = "Số điện thoại không hợp lệ";
+    if (!form.department) errs.department = "Chọn phòng ban";
+    if (!form.position.trim()) errs.position = "Vui lòng nhập vị trí";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative bg-white w-full max-w-lg rounded-xl shadow-xl p-6 mx-4">
+        <h3 className="text-lg font-semibold mb-4">Thêm nhân viên</h3>
+        <div className="space-y-3">
+          <div>
+            <input className="w-full border rounded px-3 py-2" placeholder="Họ tên" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name}</p>}
+          </div>
+          <div>
+            <input className="w-full border rounded px-3 py-2" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
+          </div>
+          <div>
+            <input className="w-full border rounded px-3 py-2" placeholder="Số điện thoại" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            {errors.phone && <p className="text-xs text-red-600 mt-1">{errors.phone}</p>}
+          </div>
+          <div>
+            <CustomSelect options={deptOptions} value={form.department} onChange={(v) => setForm({ ...form, department: v })} placeholder="Chọn phòng ban" />
+            {errors.department && <p className="text-xs text-red-600 mt-1">{errors.department}</p>}
+          </div>
+          <div>
+            <input className="w-full border rounded px-3 py-2" placeholder="Vị trí" value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} />
+            {errors.position && <p className="text-xs text-red-600 mt-1">{errors.position}</p>}
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 mt-4">
+          <button onClick={onClose} className="px-3 py-2 border rounded">Hủy</button>
+          <button
+            onClick={() => {
+              if (!validate()) return;
+              const newStaff: StaffMember = {
+                id: Date.now(),
+                name: form.name,
+                email: form.email,
+                phone: form.phone,
+                department: form.department,
+                position: form.position,
+                avatar: form.name.split(" ").map((w) => w[0]).join("").slice(0, 3).toUpperCase(),
+                joinDate: new Date().toISOString().split("T")[0],
+                currentTasks: 0,
+                completedTasks: 0,
+              };
+              onAdd(newStaff);
+              onClose();
+            }}
+            className="px-3 py-2 bg-blue-600 text-white rounded"
+          >
+            Thêm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function StaffPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [staff, setStaff] = useState<StaffMember[]>(mockStaff);
   const { hasPermission } = usePermissions();
 
-  const filteredStaff = mockStaff.filter(
+  const filteredStaff = staff.filter(
     (staff) =>
       staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       staff.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -96,9 +178,9 @@ export default function StaffPage() {
   );
 
   // Simplified stats calculation - removed average tasks per staff
-  const totalStaff = mockStaff.length;
-  const totalTasks = mockStaff.reduce((sum, s) => sum + s.currentTasks, 0);
-  const totalCompleted = mockStaff.reduce(
+  const totalStaff = staff.length;
+  const totalTasks = staff.reduce((sum, s) => sum + s.currentTasks, 0);
+  const totalCompleted = staff.reduce(
     (sum, s) => sum + s.completedTasks,
     0
   );
@@ -117,7 +199,7 @@ export default function StaffPage() {
         </div>
 
         <PermissionWrapper resource="staff" action="create">
-          <button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center">
+          <button onClick={() => setIsAddOpen(true)} className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center">
             <Plus className="w-4 h-4 mr-2" />
             Thêm nhân viên
           </button>
@@ -275,6 +357,11 @@ export default function StaffPage() {
           </div>
         )}
       </div>
+      <AddStaffDialog
+        open={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onAdd={(s) => setStaff((prev) => [s, ...prev])}
+      />
     </div>
   );
 }

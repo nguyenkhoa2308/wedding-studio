@@ -114,6 +114,7 @@ export interface Contract {
   status:
     | "waiting_schedule"
     | "scheduled"
+    | "original_images" // Gửi ảnh gốc
     | "retouch"
     | "handover"
     | "completed"

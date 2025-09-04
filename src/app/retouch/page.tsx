@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Phone,
@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CustomSelect from "@/components/CustomSelect";
+import { useRetouch } from "@/contexts/RetouchContext";
 
 interface RetouchItem {
   id: string;
@@ -330,8 +331,8 @@ const mockRetouchData: RetouchItem[] = [
 ];
 
 export default function RetouchPage() {
-  const [retouchItems, setRetouchItems] =
-    useState<RetouchItem[]>(mockRetouchData);
+  const { items: retouchCtxItems } = useRetouch();
+  const [retouchItems, setRetouchItems] = useState<RetouchItem[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<RetouchItem | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
@@ -359,6 +360,16 @@ export default function RetouchPage() {
     type: "confirm",
     onConfirm: () => {},
   });
+
+  // Merge context items with mock (context items first)
+  useEffect(() => {
+    const mockIds = new Set(mockRetouchData.map((i) => i.id));
+    const merged = [
+      ...retouchCtxItems,
+      ...mockRetouchData.filter((m) => !retouchCtxItems.some((c) => c.id === m.id)),
+    ];
+    setRetouchItems(merged as any);
+  }, [retouchCtxItems]);
 
   const filteredItems = retouchItems.filter((item) => {
     return (

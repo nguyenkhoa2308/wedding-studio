@@ -217,6 +217,9 @@ export default function CRMPage() {
 
   const handleAddCustomer = (customerData: {
     name: string;
+    phone?: string;
+    email?: string;
+    address?: string;
     source: string;
     status: string;
     note?: string;
@@ -225,9 +228,9 @@ export default function CRMPage() {
     const newCustomer = {
       id: Date.now(),
       name: customerData.name,
-      email: "",
-      phone: "",
-      address: "",
+      email: customerData.email || "",
+      phone: customerData.phone || "",
+      address: customerData.address || "",
       status: customerData.status,
       avatar: "/api/placeholder/60/60",
       weddingDate: "",
@@ -269,6 +272,8 @@ export default function CRMPage() {
     const updatedCustomer = {
       ...selectedCustomer,
       notes: [...selectedCustomer.notes, note],
+      // Update last contact when a new note is added
+      lastContact: new Date().toISOString(),
     };
 
     setSelectedCustomer(updatedCustomer);
@@ -314,11 +319,14 @@ export default function CRMPage() {
     customer: any,
     contractData: {
       contractName: string;
-      packageType: string;
-      totalAmount: string;
-      weddingDate: string;
+      mainService?: { id: string; name: string; price: string; category: string } | null;
+      additionalServices?: Array<{ id: string; name: string; price: string; category: string }>;
+      contractSignDate: string;
+      totalValue: string;
+      discountPercent: string;
+      finalValue: string;
       notes?: string;
-      debts: Array<{ amount: number; description: string }>;
+      payments: Array<{ date: string; description: string; amount: number | string; status: string; notes: string }>;
     }
   ) => {
     let updatedCustomer = customer;
@@ -327,8 +335,8 @@ export default function CRMPage() {
     const contractNote = {
       id: Date.now(),
       content: `Đã tạo hợp đồng "${contractData.contractName}" với ${
-        contractData.debts?.length || "0"
-      } công nợ`,
+        contractData.payments?.length || "0"
+      } đợt thanh toán`,
       author: "Current User",
       timestamp: new Date().toLocaleString("vi-VN", {
         year: "numeric",
@@ -377,13 +385,24 @@ export default function CRMPage() {
     // Prepare contract data for contracts context
     const contractDataForContext = {
       contractName: contractData.contractName,
-      package: contractData.packageType,
-      value: contractData.totalAmount,
-      weddingDate: contractData.weddingDate,
-      date: new Date().toISOString().split("T")[0], // Contract creation date
+      // Use selected service name as package label; fallback to "custom"
+      package: contractData.mainService?.name || "custom",
+      // Use final value if available; fallback to total value
+      value: (contractData.finalValue || contractData.totalValue || "0").toString(),
+      finalValue: contractData.finalValue,
+      discountPercent: contractData.discountPercent,
+      // Signed date from form
+      date: contractData.contractSignDate,
+      // Wedding date can be kept empty to fallback to customer's value in context
+      weddingDate: "",
       note: contractData.notes || "",
       image: "", // Default empty image
-      // debts: contractData.debts, // Include debt information
+      payments: contractData.payments,
+      additionalServices: contractData.additionalServices?.map((s) => ({
+        id: s.id,
+        name: s.name,
+        price: s.price,
+      })),
     };
 
     // Create new contract using context with updated customer data and debt info
@@ -398,13 +417,12 @@ export default function CRMPage() {
     );
     console.log(`Thông tin hợp đồng:`, {
       contractName: contractData.contractName,
-      package: contractData.packageType,
-      value: contractData.totalAmount,
-      weddingDate: contractData.weddingDate,
-      debts: contractData.debts,
+      package: contractDataForContext.package,
+      value: contractDataForContext.value,
+      signedDate: contractData.contractSignDate,
+      paymentsCount: contractData.payments?.length || 0,
       hasNote: !!contractData.notes,
     });
-    console.log(`Chi tiết công nợ:`, contractData.debts);
   };
 
   const handleDeleteCustomer = (customer: any) => {

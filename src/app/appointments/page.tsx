@@ -1,23 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Calendar,
-  Plus,
-  Clock,
-  Users,
-  Camera,
-  X,
-  Search,
-  CheckCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { Calendar, Plus, Clock, Users, Camera, Search, CheckCircle, AlertTriangle } from "lucide-react";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import { Appointment, AppointmentStatus } from "@/types";
 import { useAppointments } from "@/contexts/AppointmentsContext";
 import AppointmentCard from "./components/AppoinmentCard";
+import AppointmentDetailDialog from "./components/AppointmentDetailDialog";
+import EditAppointmentDialog from "./components/EditAppointmentDialog";
+import CreateAppointmentDialog, { type NewAppointmentForm } from "./components/CreateAppointmentDialog";
 
 // interface Appointment {
 //   id: number;
@@ -113,55 +106,10 @@ import AppointmentCard from "./components/AppoinmentCard";
 //   },
 // ];
 
-const photographers = [
-  "Nguyễn Văn A",
-  "Trần Thị B",
-  "Lê Văn C",
-  "Phạm Văn D",
-  "Trần Minh B",
-  "Nguyễn Văn C",
-  "Hoàng Minh D",
-];
-const makeupArtists = [
-  "Lê Thị Hoa",
-  "Phạm Thị Mai",
-  "Vũ Thị Lan",
-  "Đặng Thị Hương",
-  "Trần Thị Kim",
-];
-const locations = [
-  "Studio A",
-  "Studio B",
-  "Studio C",
-  "Outdoor - Công viên Tao Đàn",
-  "Outdoor - Hồ Gươm",
-  "Outdoor - Cầu Long Biên",
-];
-const packages = [
-  "Basic Wedding",
-  "Classic Wedding",
-  "Premium Wedding",
-  "Luxury Wedding",
-];
+// Options moved into CreateAppointmentDialog component
 
-interface NewAppointment {
-  couple: string;
-  phone: string;
-  email: string;
-  bookDate: string;
-  shootDate: string;
-  weddingDate: string;
-  time: string;
-  duration: string;
-  location: string;
-  mainPhotographer: string;
-  assistantPhotographer: string;
-  makeupArtist: string;
-  package: string;
-  notes: string;
-}
 export default function AppointmentsPage() {
-  const { appointments } = useAppointments();
+  const { appointments, updateAppointment, addAppointment } = useAppointments();
   // Status change dialog states
   const [isStatusChangeOpen, setIsStatusChangeOpen] = useState(false);
   const [selectedAppointmentForStatus, setSelectedAppointmentForStatus] =
@@ -175,22 +123,7 @@ export default function AppointmentsPage() {
     useState<Appointment | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newAppointment, setNewAppointment] = useState<NewAppointment>({
-    couple: "",
-    phone: "",
-    email: "",
-    bookDate: "",
-    shootDate: "",
-    weddingDate: "",
-    time: "",
-    duration: "",
-    location: "",
-    mainPhotographer: "",
-    assistantPhotographer: "",
-    makeupArtist: "",
-    package: "",
-    notes: "",
-  });
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const getStatusConfig = (status: AppointmentStatus) => {
     switch (status) {
@@ -267,7 +200,7 @@ export default function AppointmentsPage() {
     const qRaw = searchTerm.trim();
     if (!qRaw) return byDate;
 
-    // 3) Lọc theo từ khóa (tên/email/điện thoại)
+    // 3) Lọc theo từ khóa (tên khách hàng và số điện thoại)
     const q = normalize(qRaw);
 
     return byDate.filter((a: Appointment) => {
@@ -280,9 +213,12 @@ export default function AppointmentsPage() {
         .map((t) => normalize(t))
         .some((t) => t.includes(q));
 
-      // so khớp theo chữ số của phone (bỏ dấu cách, dấu chấm, +84,...)
+      // so khớp theo điện thoại (bỏ mọi ký tự không phải số)
+      const phoneDigits = (a.customerPhone || "").replace(/\D/g, "");
+      const qDigits = qRaw.replace(/\D/g, "");
+      const phoneMatch = qDigits ? phoneDigits.includes(qDigits) : false;
 
-      return textMatch;
+      return textMatch || phoneMatch;
     });
   };
 
@@ -348,28 +284,22 @@ export default function AppointmentsPage() {
     setSelectedAppointment(null);
   };
 
+  const openDetailModal = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsDetailModalOpen(true);
+  };
+
+  const openEditModal = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsEditModalOpen(true);
+  };
+
   const openCreateModal = () => {
     setIsCreateModalOpen(true);
   };
 
   const closeCreateModal = () => {
     setIsCreateModalOpen(false);
-    setNewAppointment({
-      couple: "",
-      phone: "",
-      email: "",
-      bookDate: "",
-      shootDate: "",
-      weddingDate: "",
-      time: "",
-      duration: "",
-      location: "",
-      mainPhotographer: "",
-      assistantPhotographer: "",
-      makeupArtist: "",
-      package: "",
-      notes: "",
-    });
   };
 
   const handleSearchChange = (value: string) => {
@@ -385,9 +315,48 @@ export default function AppointmentsPage() {
     setIsStatusChangeOpen(true);
   };
 
-  const handleCreateAppointment = () => {
-    // Logic tạo lịch hẹn mới
-    console.log("Creating appointment:", newAppointment);
+  const handleCreateAppointment = (form: NewAppointmentForm) => {
+    const id = Date.now();
+    const durationNum = parseInt(String(form.duration).replace(/\D/g, "")) || undefined;
+    const code = `AP${new Date().getFullYear()}${String(id).slice(-4)}`;
+    const equipmentList = form.equipment
+      ? form.equipment
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+      : [];
+    const appointment: Appointment = {
+      id,
+      contractId: 0,
+      contractNumber: code,
+      couple: form.couple.trim(),
+      date: form.shootDate,
+      time: form.time,
+      location: form.location,
+      package: form.package,
+      status: "staff_assignment",
+      createdAt: form.bookDate || new Date().toISOString(),
+      photographer: form.mainPhotographer || undefined,
+      assistant:
+        form.assistantPhotographer && form.assistantPhotographer !== "none"
+          ? form.assistantPhotographer
+          : undefined,
+      makeup: form.makeupArtist || undefined,
+      notes: form.notes || undefined,
+      equipment: equipmentList.length ? equipmentList : undefined,
+      duration: durationNum,
+      customerPhone: form.phone || undefined,
+      customerEmail: form.email || undefined,
+      statusHistory: [
+        {
+          from: "staff_assignment",
+          to: "staff_assignment",
+          timestamp: new Date().toISOString(),
+          data: { created: true },
+        },
+      ],
+    };
+    addAppointment(appointment);
     closeCreateModal();
   };
 
@@ -574,6 +543,8 @@ export default function AppointmentsPage() {
             getStatusConfig={getStatusConfig}
             getAvailableTransitions={getAvailableTransitions}
             onStatusChange={handleStatusChange}
+            onViewClick={openDetailModal}
+            onEditClick={openEditModal}
           />
         ))}
       </div>
@@ -590,339 +561,37 @@ export default function AppointmentsPage() {
         </div>
       )}
 
+      {/* View details dialog */}
+      <AppointmentDetailDialog
+        isOpen={isDetailModalOpen}
+        appointment={selectedAppointment}
+        onClose={closeDetailModal}
+        onEdit={(a) => {
+          setIsDetailModalOpen(false);
+          openEditModal(a);
+        }}
+      />
+
+      {/* Edit dialog */}
+      <EditAppointmentDialog
+        isOpen={isEditModalOpen}
+        appointment={selectedAppointment}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={async (id, updates) => {
+          try {
+            await updateAppointment(id, updates);
+          } finally {
+            setIsEditModalOpen(false);
+          }
+        }}
+      />
+
       {/* Create Appointment Modal */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4 animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-slate-900">
-                    Tạo lịch hẹn mới
-                  </h2>
-                  <p className="text-slate-600 mt-1">
-                    Vui lòng điền đầy đủ thông tin để tạo lịch hẹn mới.
-                  </p>
-                </div>
-                <button
-                  onClick={closeCreateModal}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                  title="Đóng modal tạo lịch hẹn"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Tên cặp đôi
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="VD: Minh Anh & Tuấn Khang"
-                    value={newAppointment.couple}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        couple: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Số điện thoại
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="0901234567"
-                    value={newAppointment.phone}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        phone: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  placeholder="couple@email.com"
-                  value={newAppointment.email}
-                  onChange={(e) =>
-                    setNewAppointment((prev) => ({
-                      ...prev,
-                      email: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Ngày book
-                  </label>
-                  <input
-                    type="date"
-                    value={newAppointment.bookDate}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        bookDate: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    title="Nhập ngày book"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Ngày chụp
-                  </label>
-                  <input
-                    type="date"
-                    value={newAppointment.shootDate}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        shootDate: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    title="Chọn ngày chụp"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Ngày cưới (deadline)
-                  </label>
-                  <input
-                    type="date"
-                    value={newAppointment.weddingDate}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        weddingDate: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    title="Chọn ngày chụp"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Giờ bắt đầu
-                  </label>
-                  <input
-                    type="time"
-                    value={newAppointment.time}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        time: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    title="Chọn giờ bất đầu"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Thời gian chụp
-                  </label>
-                  <select
-                    value={newAppointment.duration}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        duration: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    title="Chọn thời gian chụp"
-                  >
-                    <option value="">Chọn thời gian</option>
-                    <option value="2 giờ">2 giờ</option>
-                    <option value="3 giờ">3 giờ</option>
-                    <option value="4 giờ">4 giờ</option>
-                    <option value="5 giờ">5 giờ</option>
-                    <option value="6 giờ">6 giờ</option>
-                    <option value="8 giờ">8 giờ</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Địa điểm
-                  </label>
-                  <select
-                    value={newAppointment.location}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        location: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    title="Chọn địa điểm chụp"
-                  >
-                    <option value="">Chọn địa điểm</option>
-                    {locations.map((location) => (
-                      <option key={location} value={location}>
-                        {location}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Chụp chính
-                  </label>
-                  <select
-                    value={newAppointment.mainPhotographer}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        mainPhotographer: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    title="Chọn thợ chụp"
-                  >
-                    <option value="">Chọn photographer chính</option>
-                    {photographers.map((photographer) => (
-                      <option key={photographer} value={photographer}>
-                        {photographer}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Chụp phụ
-                  </label>
-                  <select
-                    value={newAppointment.assistantPhotographer}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        assistantPhotographer: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    title="Chọn thợ chụp phụ"
-                  >
-                    <option value="">Chọn photographer phụ</option>
-                    <option value="none">Không có</option>
-                    {photographers.map((photographer) => (
-                      <option key={photographer} value={photographer}>
-                        {photographer}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Makeup Artist
-                  </label>
-                  <select
-                    value={newAppointment.makeupArtist}
-                    onChange={(e) =>
-                      setNewAppointment((prev) => ({
-                        ...prev,
-                        makeupArtist: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    title="Chọn người makeup"
-                  >
-                    <option value="">Chọn makeup artist</option>
-                    <option value="none">Không có</option>
-                    {makeupArtists.map((artist) => (
-                      <option key={artist} value={artist}>
-                        {artist}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Gói dịch vụ
-                </label>
-                <select
-                  value={newAppointment.package}
-                  onChange={(e) =>
-                    setNewAppointment((prev) => ({
-                      ...prev,
-                      package: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                  title="Chọn gói dịch vụ"
-                >
-                  <option value="">Chọn gói dịch vụ</option>
-                  {packages.map((pkg) => (
-                    <option key={pkg} value={pkg}>
-                      {pkg}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Ghi chú
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Ghi chú về yêu cầu đặc biệt, concept chụp..."
-                  value={newAppointment.notes}
-                  onChange={(e) =>
-                    setNewAppointment((prev) => ({
-                      ...prev,
-                      notes: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end space-x-2 p-6 border-t border-slate-200">
-              <button
-                onClick={closeCreateModal}
-                className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleCreateAppointment}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Tạo lịch hẹn
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CreateAppointmentDialog
+        isOpen={isCreateModalOpen}
+        onClose={closeCreateModal}
+        onSubmit={handleCreateAppointment}
+      />
 
       {/* Detail Modal */}
       {/* {isDetailModalOpen && selectedAppointment && (

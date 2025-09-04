@@ -22,6 +22,7 @@ import { MenuItem } from "@/types";
 import { AppointmentsProvider } from "@/contexts/AppointmentsContext";
 import { ContractsProvider } from "@/contexts/ContractsContext";
 import { PricingProvider } from "@/contexts/PricingContext";
+import { RetouchProvider } from "@/contexts/RetouchContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import {
   PermissionProvider,
@@ -155,6 +156,7 @@ export default function RootLayout({
             <ContractsProvider>
               <AppointmentsProvider>
                 <PricingProvider>
+                  <RetouchProvider>
                   {/* <PrivateRoute> */}
                   <AuthWrapper>
                     {!isNaked && (
@@ -211,6 +213,7 @@ export default function RootLayout({
                     </main>
                   </AuthWrapper>
                   {/* </PrivateRoute> */}
+                  </RetouchProvider>
                 </PricingProvider>
               </AppointmentsProvider>
             </ContractsProvider>

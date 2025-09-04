@@ -139,7 +139,7 @@ export function EditCustomerDialog({
               role="dialog"
               aria-modal="true"
               aria-labelledby="edit-customer-title"
-              className="relative max-w-2xl w-[95vw] h-auto min-h-[80vh] bg-white rounded-2xl shadow-xl flex flex-col p-4 sm:p-6 lg:p-8 border border-gray-100"
+              className="relative max-w-2xl w-[95vw] bg-white rounded-2xl shadow-xl flex flex-col p-4 sm:p-6 lg:p-8 border border-gray-100"
               onClick={(e) => e.stopPropagation()}
               initial={{ opacity: 0, y: 16, scale: 0.98 }}
               animate={{
@@ -195,7 +195,7 @@ export function EditCustomerDialog({
               </div>
 
               {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto px-1 sm:px-2">
+              <div className="flex-1 px-1 sm:px-2 overscroll-contain">
                 <div className="space-y-6 sm:space-y-8 py-4 sm:py-2">
                   {/* Basic Information */}
                   <section className="space-y-4">

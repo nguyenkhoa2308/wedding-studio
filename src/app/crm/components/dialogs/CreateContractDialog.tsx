@@ -168,28 +168,24 @@ export default function CreateContractDialog({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Flatten all services for selection
-  const allServices = useMemo(() => {
-    const flatServices: Service[] = [];
-    Object.entries(services).forEach(([category, serviceList]) => {
-      serviceList.forEach((service) => {
-        flatServices.push({
-          id: service.id,
-          name: service.name,
-          price: service.price,
-          category: category,
-        });
-      });
-    });
-    return flatServices;
-  }, [services]);
+  // Additional services from pricing context
+  const additionalServicesFromPricing = useMemo(
+    () =>
+      (services.additional || []).map((s) => ({
+        id: s.id,
+        name: s.name,
+        price: s.price,
+        category: "additional",
+      })),
+    [services]
+  );
 
   // Filter services for search
   const filteredMainServices = services.items.filter((service) =>
     service.name.toLowerCase().includes(mainServiceSearch.toLowerCase())
   );
 
-  const filteredAdditionalServices = allServices.filter(
+  const filteredAdditionalServices = additionalServicesFromPricing.filter(
     (service) =>
       service.name
         .toLowerCase()
@@ -199,6 +195,26 @@ export default function CreateContractDialog({
       ) &&
       selectedMainService?.id !== service.id
   );
+
+  // Recalculate totalValue = main service + sum(additional)
+  useEffect(() => {
+    const base = parseInt((selectedMainService?.price || "0").toString().replace(/\D/g, "")) || 0;
+    const addSum = selectedAdditionalServices.reduce((sum, s) => {
+      const n = parseInt((s.price || "0").toString().replace(/\D/g, "")) || 0;
+      return sum + n;
+    }, 0);
+    const total = base + addSum;
+    setFormData((prev) => ({ ...prev, totalValue: total.toString() }));
+  }, [selectedMainService, selectedAdditionalServices]);
+
+  // Keep finalValue in sync when totalValue/discount changes
+  useEffect(() => {
+    const total = parseInt(formData.totalValue.replace(/\D/g, "")) || 0;
+    const discount = parseFloat(formData.discountPercent) || 0;
+    const final = Math.max(total - (total * discount) / 100, 0);
+    setFormData((prev) => ({ ...prev, finalValue: String(Math.round(final)) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.totalValue, formData.discountPercent]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => {

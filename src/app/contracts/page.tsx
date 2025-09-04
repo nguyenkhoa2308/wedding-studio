@@ -10,7 +10,6 @@ import {
   Plus,
   Clock,
   CheckCircle,
-  CreditCard,
   StickyNote,
   User,
   Mail,
@@ -21,6 +20,7 @@ import {
   Package,
   ChevronRight,
   ArrowRight,
+  ArrowUpRight,
   X,
   AlertTriangle,
   Home,
@@ -32,6 +32,8 @@ import AddNoteDialog from "./components/dialogs/AddNoteDialog";
 import { EditCustomerInfoDialog } from "./components/dialogs/EditCustomerInfoDialog";
 import { AddAdditionalServiceDialog } from "./components/dialogs/AddAdditionalServiceDialog";
 import { Contract } from "@/types";
+import { useRetouch } from "@/contexts/RetouchContext";
+import { getStaffByRole } from "@/data/staff";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("vi-VN", {
@@ -44,6 +46,7 @@ const formatCurrency = (amount: number) => {
 const CONTRACT_STATUSES = {
   waiting_schedule: "waiting_schedule",
   scheduled: "scheduled",
+  original_images: "original_images",
   retouch: "retouch",
   handover: "handover",
   completed: "completed",
@@ -67,6 +70,13 @@ const getStatusConfig = (status: ContractStatus) => {
         color: "bg-blue-100 text-blue-800 border-blue-200",
         icon: Calendar,
         description: "Đã có lịch chụp, chờ thực hiện",
+      };
+    case "original_images":
+      return {
+        label: "Gửi ảnh gốc",
+        color: "bg-cyan-100 text-cyan-800 border-cyan-200",
+        icon: ArrowUpRight,
+        description: "Đã gửi ảnh gốc cho khách, chờ chuyển Retouch",
       };
     case "retouch":
       return {
@@ -114,7 +124,9 @@ const getAvailableTransitions = (
     case "waiting_schedule":
       return ["scheduled", "cancelled"];
     case "scheduled":
-      return ["cancelled"]; // Removed 'retouch' - will auto-transition when appointment completes
+      return ["original_images", "cancelled"]; // Có thể chuyển sang Gửi ảnh gốc hoặc hủy
+    case "original_images":
+      return ["retouch", "cancelled"]; // Sau khi gửi ảnh gốc, có thể chuyển Retouch
     case "retouch":
       return ["handover", "cancelled"];
     case "handover":
@@ -154,6 +166,8 @@ function StatusChangeDialog({
     retouchType: "basic",
     estimatedDays: "7",
     specialRequests: "",
+    // Original images
+    originalImagesUrl: "",
     // Handover data
     handoverDeliveryMethod: "drive",
     handoverNotes: "",
@@ -264,10 +278,7 @@ function StatusChangeDialog({
           </div>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex-1 overflow-y-auto px-4 sm:px-6 py-4"
-        >
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
           {/* Status transition preview */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
             <div className="flex items-center justify-center gap-4">
@@ -299,19 +310,87 @@ function StatusChangeDialog({
             </div>
           </div>
 
-          {/* Status specific fields would go here */}
+          {/* Status specific fields */}
           <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <statusConfig.icon className="w-4 h-4 text-blue-600" />
-                <h4 className="text-sm font-medium text-blue-900">
-                  Thông tin chuyển trạng thái
-                </h4>
+            {newStatus === "scheduled" && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">Ngày chụp</label>
+                    <input type="date" className="w-full border rounded px-3 py-2 text-sm" value={formData.shootingDate} onChange={(e) => setFormData({ ...formData, shootingDate: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">Giờ chụp</label>
+                    <input type="time" className="w-full border rounded px-3 py-2 text-sm" value={formData.shootingTime} onChange={(e) => setFormData({ ...formData, shootingTime: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600">Địa điểm</label>
+                  <input className="w-full border rounded px-3 py-2 text-sm" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="Địa điểm chụp" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600">Chụp chính</label>
+                  <select
+                    className="w-full border rounded px-3 py-2 text-sm"
+                    value={formData.photographer}
+                    onChange={(e) => setFormData({ ...formData, photographer: e.target.value })}
+                  >
+                    <option value="">Chọn photographer</option>
+                    {getStaffByRole("photographer").map((s) => (
+                      <option key={s.id} value={s.name}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600">Ghi chú</label>
+                  <textarea className="w-full border rounded px-3 py-2 text-sm" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Ghi chú lịch chụp" />
+                </div>
               </div>
-              <p className="text-sm text-blue-700">
-                Vui lòng xác nhận việc chuyển trạng thái hợp đồng.
-              </p>
-            </div>
+            )}
+
+            {newStatus === "original_images" && (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-600">Link ảnh gốc</label>
+                  <input className="w-full border rounded px-3 py-2 text-sm" value={formData.originalImagesUrl} onChange={(e) => setFormData({ ...formData, originalImagesUrl: e.target.value })} placeholder="https://..." />
+                </div>
+              </div>
+            )}
+
+            {newStatus === "retouch" && (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-600">Loại retouch</label>
+                  <select className="w-full border rounded px-3 py-2 text-sm" value={formData.retouchType} onChange={(e) => setFormData({ ...formData, retouchType: e.target.value as any })}>
+                    <option value="basic">Basic</option>
+                    <option value="advanced">Advanced</option>
+                    <option value="premium">Premium</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600">Số ngày dự kiến</label>
+                  <input className="w-full border rounded px-3 py-2 text-sm" value={formData.estimatedDays} onChange={(e) => setFormData({ ...formData, estimatedDays: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600">Yêu cầu đặc biệt</label>
+                  <textarea className="w-full border rounded px-3 py-2 text-sm" value={formData.specialRequests} onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })} />
+                </div>
+              </div>
+            )}
+
+            {/* Default info */}
+            {(newStatus !== "scheduled" && newStatus !== "original_images" && newStatus !== "retouch") && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <statusConfig.icon className="w-4 h-4 text-blue-600" />
+                  <h4 className="text-sm font-medium text-blue-900">Thông tin chuyển trạng thái</h4>
+                </div>
+                <p className="text-sm text-blue-700">Vui lòng xác nhận việc chuyển trạng thái hợp đồng.</p>
+              </div>
+            )}
           </div>
         </form>
 
@@ -373,6 +452,7 @@ export default function ContractsPage() {
 
   // Get contracts from context
   const { contracts, updateContract } = useContracts();
+  const { addItem: addRetouchItem } = useRetouch();
 
   // Status change handlers
   const handleStatusChange = (contract: any, newStatus: ContractStatus) => {
@@ -439,6 +519,11 @@ export default function ContractsPage() {
         toast.success(
           `Đã tạo lịch chụp cho hợp đồng ${selectedContractForStatus.contractNumber}`
         );
+      } else if (data.status === "original_images") {
+        updates.originalImagesUrl = data.statusData.originalImagesUrl;
+        toast.success(
+          `Đã cập nhật link ảnh gốc cho hợp đồng ${selectedContractForStatus.contractNumber}`
+        );
       } else if (data.status === "retouch") {
         // Create retouch project
         updates.retouchProject = {
@@ -453,6 +538,30 @@ export default function ContractsPage() {
         toast.success(
           `Đã tạo dự án retouch cho hợp đồng ${selectedContractForStatus.contractNumber}`
         );
+        // Add a retouch item to context
+        const deadline = new Date();
+        const days = parseInt(data.statusData.estimatedDays) || 7;
+        deadline.setDate(deadline.getDate() + days);
+        addRetouchItem({
+          id: `${selectedContractForStatus.id}-${Date.now()}`,
+          contractName: selectedContractForStatus.couple,
+          customerName: selectedContractForStatus.customerName,
+          phone: selectedContractForStatus.customerPhone || "",
+          servicePackage: selectedContractForStatus.package,
+          deadline: deadline.toISOString().split("T")[0],
+          submissionDate: new Date().toISOString().split("T")[0],
+          assignee: "",
+          status: "Đang thực hiện",
+          location: selectedContractForStatus.appointment?.location || "",
+          notes: [
+            {
+              id: `${Date.now()}`,
+              content: "Tự động tạo từ Hợp đồng chuyển sang Retouch",
+              timestamp: new Date().toLocaleString("vi-VN"),
+              author: "System",
+            },
+          ],
+        });
       } else if (data.status === "handover") {
         // Create handover record
         updates.handover = {
@@ -567,7 +676,9 @@ export default function ContractsPage() {
   const statusOrder: ContractStatus[] = [
     "waiting_schedule",
     "scheduled",
+    "original_images",
     "retouch",
+    // retouch is managed on its own page
     "handover",
     "completed",
     "cancelled",
@@ -830,12 +941,14 @@ function ContractCard({
 
           {/* Action Buttons */}
           <div className="flex gap-2 ml-4">
-            <button
-              onClick={() => onStatusChange(contract, "cancelled")}
-              className="h-8 px-3 text-sm text-red-600 border border-red-200 hover:bg-red-50 bg-white rounded font-medium transition-all duration-200 touch-manipulation"
-            >
-              Đóng hủy
-            </button>
+            {contract.status !== "completed" && (
+              <button
+                onClick={() => onStatusChange(contract, "cancelled")}
+                className="h-8 px-3 text-sm text-red-600 border border-red-200 hover:bg-red-50 bg-white rounded font-medium transition-all duration-200 touch-manipulation"
+              >
+                Đóng hủy
+              </button>
+            )}
             <button className="h-8 px-2 text-sm border border-gray-200 hover:bg-gray-50 bg-white rounded font-medium transition-all duration-200 touch-manipulation">
               Sửa
             </button>
@@ -869,7 +982,7 @@ function ContractCard({
               id: "payment",
               label: "Thanh toán",
               shortLabel: "TT",
-              icon: CreditCard,
+              icon: ArrowUpRight,
             },
             {
               id: "notes",
@@ -1055,49 +1168,59 @@ function ContractCard({
         {/* Payment Tab */}
         {activeTab === "payment" && (
           <div className="space-y-4">
-            <h4 className="text-base font-medium text-gray-900">
-              Thông tin thanh toán
-            </h4>
-
-            {/* Payment Progress */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-[13px]">
-                <span className="text-gray-600">Tiến độ thanh toán</span>
-                <span className="font-medium">
-                  {Math.round((paidAmount / totalValue) * 100)}%
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+            <h4 className="text-base font-medium text-gray-900">Giao dịch</h4>
+            {/* Payment list similar to Kế toán */}
+            <div className="space-y-3 sm:space-y-4">
+              {([...((contract.paymentSchedule || []))]
+                .sort((a: any, b: any) => {
+                  const da = new Date(a.paidDate || a.dueDate || 0).getTime();
+                  const db = new Date(b.paidDate || b.dueDate || 0).getTime();
+                  return db - da; // newest first
+                }) as any[]).map((p, idx) => (
                 <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(paidAmount / totalValue) * 100}%` }}
-                ></div>
-              </div>
-            </div>
-
-            {/* Payment Breakdown */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                <span className="text-[13px] text-gray-600">Tổng giá trị</span>
-                <span className="text-[13px] font-medium">
-                  {formatCurrency(totalValue)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-                <span className="text-[13px] text-gray-600">Đã thanh toán</span>
-                <span className="text-[13px] font-medium text-green-600">
-                  {formatCurrency(paidAmount)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-2 bg-red-50 rounded">
-                <span className="text-[13px] text-gray-600">Còn lại</span>
-                <span className="text-[13px] font-medium text-red-600">
-                  {formatCurrency(remainingAmount)}
-                </span>
-              </div>
+                  key={idx}
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 rounded-lg border border-slate-200 bg-white/60 space-y-3 sm:space-y-0"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${p.status === "paid" ? "bg-emerald-50" : "bg-slate-100"}`}>
+                      <ArrowUpRight className={`w-5 h-5 sm:w-6 sm:h-6 ${p.status === "paid" ? "text-emerald-600" : "text-slate-500"}`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-slate-800 text-sm sm:text-base truncate">
+                        {p.phase}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
+                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border border-slate-300 text-slate-700">
+                          Thu hợp đồng
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {(p.paidDate || p.dueDate) && new Date(p.paidDate || p.dueDate!).toLocaleDateString("vi-VN")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between sm:block sm:text-right">
+                    <p className={`font-bold text-sm sm:text-base ${p.status === "paid" ? "text-emerald-600" : "text-slate-700"}`}>
+                      +{new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(p.amount)}
+                    </p>
+                    <div className="sm:mt-1">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${p.status === "paid" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}>
+                        {p.status === "paid" ? "Hoàn thành" : "Chờ xử lý"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(contract.paymentSchedule || []).length === 0 && (
+                <div className="text-center py-8 text-gray-500 bg-blue-50 rounded-lg border border-blue-200">
+                  Chưa có giao dịch nào
+                </div>
+              )}
             </div>
           </div>
         )}
+
+        {/* Payment Tab removed: Transactions are shown in Kế toán */}
 
         {/* Notes Tab */}
         {activeTab === "notes" && (

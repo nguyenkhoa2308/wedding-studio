@@ -52,11 +52,14 @@ export default function CustomSelect({
     <div className="relative" ref={selectRef}>
       <button
         type="button"
-        className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-left text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+        className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-left text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap overflow-hidden"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
       >
-        <span className={selectedOption ? "text-slate-900" : "text-slate-400"}>
+        <span
+          className={(selectedOption ? "text-slate-900" : "text-slate-400") + " truncate"}
+          title={selectedOption ? selectedOption.label : placeholder}
+        >
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
@@ -73,18 +76,17 @@ export default function CustomSelect({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-45 overflow-auto"
+            className="absolute z-50 min-w-full w-auto max-w-[24rem] mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-45 overflow-auto overscroll-contain"
           >
             {options.map((option) => (
               <button
                 key={option.value}
                 type="button"
-                className="w-full px-3 py-2.5 text-left text-slate-900 hover:bg-slate-50 
-                         first:rounded-t-lg last:rounded-b-lg transition-colors
-                         focus:outline-none focus:bg-slate-50"
+                className="w-full px-3 py-2.5 text-left text-slate-900 hover:bg-slate-50 first:rounded-t-lg last:rounded-b-lg transition-colors focus:outline-none focus:bg-slate-50 whitespace-normal"
                 onClick={() => handleSelect(option.value)}
+                title={option.label}
               >
-                {option.label}
+                <span className="block break-words whitespace-normal">{option.label}</span>
               </button>
             ))}
           </motion.div>

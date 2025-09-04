@@ -33,6 +33,7 @@ import {
   Bar,
 } from "recharts";
 import { AnimatePresence, motion } from "framer-motion";
+import { useContracts } from "@/contexts/ContractsContext";
 
 /* --------------------- CustomSelect (framer-motion) --------------------- */
 type Option = { value: string; label: string };
@@ -166,7 +167,7 @@ function Dialog({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50"
+          className="fixed inset-0 z-50 !mt-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -551,6 +552,21 @@ export default function AccountingPage() {
   const [filterType, setFilterType] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
+  // Payroll edit dialog state
+  const [isPayrollOpen, setIsPayrollOpen] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
+  const [payrollForm, setPayrollForm] = useState({
+    baseSalary: "",
+    hourlyRate: "",
+    workingDaysPerMonth: "",
+    allowances: "",
+    bonus: "",
+    deductions: "",
+  });
+  const [payrollOverrides, setPayrollOverrides] = useState<
+    Record<number, { allowances?: number; bonus?: number; deductions?: number }>
+  >({});
+  const [payrollVersion, setPayrollVersion] = useState(0);
 
   const [form, setForm] = useState({
     type: "",
@@ -560,6 +576,7 @@ export default function AccountingPage() {
     date: "",
     party: "",
   });
+  const [extraTransactions, setExtraTransactions] = useState<any[]>([]);
 
   // Select options
   const typeOptions: Option[] = [
@@ -583,9 +600,91 @@ export default function AccountingPage() {
   const categoryOptions: Option[] =
     form.type === "income" ? incomeCats : expenseCats;
 
-  const staffData = getProcessedStaffData();
+  const staffDataRaw = getProcessedStaffData();
+  // Apply overrides and updates (baseSalary/hourlyRate/workingDays already mutated into staffDatabase on save)
+  const staffData = useMemo(() => {
+    return staffDataRaw.map((s: any) => {
+      const ov = payrollOverrides[s.id];
+      if (!ov) return s;
+      const allowances = ov.allowances ?? s.allowances;
+      const bonus = ov.bonus ?? s.bonus;
+      const deductions = ov.deductions ?? s.deductions;
+      const totalSalary = s.baseSalary + allowances + bonus - deductions;
+      return { ...s, allowances, bonus, deductions, totalSalary };
+    });
+  }, [staffDataRaw, payrollOverrides, payrollVersion]);
   const rewardsData = getProcessedRewardsPenaltiesData();
-  const transactions = getProcessedTransactions();
+
+  // Pull transactions from contracts payments and merge with base transactions
+  const { contracts } = useContracts();
+  const contractTransactions = useMemo(() => {
+    const tx: any[] = [];
+    contracts.forEach((c) => {
+      (c.paymentSchedule || []).forEach((p, idx) => {
+        tx.push({
+          id: Number(`${c.id}${idx}`),
+          type: "income",
+          amount: p.amount,
+          category: "Hợp đồng",
+          description: `${c.contractNumber} - ${p.phase}`,
+          date: (p.paidDate || p.dueDate) as string,
+          customer: c.couple,
+          status: p.status === "paid" ? "completed" : "pending",
+        });
+      });
+    });
+    return tx;
+  }, [contracts]);
+
+  const baseTransactions = getProcessedTransactions();
+  const transactions = useMemo(
+    () => [...extraTransactions, ...contractTransactions, ...baseTransactions],
+    [extraTransactions, contractTransactions, baseTransactions]
+  );
+
+  // Helper: format numeric input with thousand separators (vi-VN)
+  const formatNumberVN = (value: string) => {
+    const digits = (value || "").replace(/\D/g, "");
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
+  const handleAddTransaction = () => {
+    // Basic validation
+    const amountNum = parseInt(form.amount.replace(/\D/g, "")) || 0;
+    if (
+      !form.type ||
+      !amountNum ||
+      !form.category ||
+      !form.description ||
+      !form.date
+    ) {
+      alert("Vui lòng nhập đầy đủ thông tin giao dịch");
+      return;
+    }
+    const isIncome = form.type === "income";
+    const newTx = {
+      id: Date.now(),
+      type: form.type,
+      amount: amountNum,
+      category: form.category,
+      description: form.description.trim(),
+      date: form.date,
+      customer: isIncome ? form.party.trim() : undefined,
+      supplier: !isIncome ? form.party.trim() : undefined,
+      status: "completed",
+    };
+    setExtraTransactions((prev) => [newTx, ...prev]);
+    // reset & close
+    setForm({
+      type: "",
+      amount: "",
+      category: "",
+      description: "",
+      date: "",
+      party: "",
+    });
+    setIsAddOpen(false);
+  };
 
   const totalIncome = transactions
     .filter((t) => t.type === "income")
@@ -604,6 +703,9 @@ export default function AccountingPage() {
       (t.supplier?.toLowerCase().includes(q) ?? false);
     return matchesType && matchesSearch;
   });
+  const sortedTransactions = [...filteredTransactions].sort(
+    (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
 
   return (
     <div className="p-6 space-y-6 min-h-screen pt-18">
@@ -901,7 +1003,7 @@ export default function AccountingPage() {
         {/* TRANSACTIONS */}
         {tab === "transactions" && (
           <div className="mobile-spacing">
-            <div className="rounded-2xl border border-slate-200 bg-white/70 backdrop-blur shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white/70 backdrop-blur shadow-sm relative z-10">
               <div className="px-4 py-4 sm:px-6">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1 relative">
@@ -937,7 +1039,7 @@ export default function AccountingPage() {
               </div>
               <div className="px-4 pb-4 sm:px-6">
                 <div className="space-y-3 sm:space-y-4">
-                  {filteredTransactions.map((t) => (
+                  {sortedTransactions.map((t) => (
                     <div
                       key={t.id}
                       className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 rounded-lg border border-slate-200 bg-white/60 space-y-3 sm:space-y-0"
@@ -1086,6 +1188,7 @@ export default function AccountingPage() {
                         <th className="py-2 pr-2 text-right">Khấu trừ</th>
                         <th className="py-2 pr-2 text-right">Thực lĩnh</th>
                         <th className="py-2 pr-2 text-center">Trạng thái</th>
+                        <th className="py-2 pr-2 text-center">Hành động</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1129,6 +1232,36 @@ export default function AccountingPage() {
                             >
                               {s.status === "active" ? "Hoạt động" : "Tạm dừng"}
                             </span>
+                          </td>
+                          <td className="py-2 pr-2 text-center">
+                            <button
+                              className="inline-flex items-center rounded-md border px-2 py-1 text-xs hover:bg-slate-50"
+                              onClick={() => {
+                                setSelectedStaffId(s.id);
+                                setPayrollForm({
+                                  baseSalary: formatNumberVN(
+                                    String(s.baseSalary)
+                                  ),
+                                  hourlyRate: formatNumberVN(
+                                    String(getStaffById(s.id)?.hourlyRate ?? 0)
+                                  ),
+                                  workingDaysPerMonth: String(
+                                    getStaffById(s.id)?.workingDaysPerMonth ??
+                                      22
+                                  ),
+                                  allowances: formatNumberVN(
+                                    String(s.allowances)
+                                  ),
+                                  bonus: formatNumberVN(String(s.bonus)),
+                                  deductions: formatNumberVN(
+                                    String(s.deductions)
+                                  ),
+                                });
+                                setIsPayrollOpen(true);
+                              }}
+                            >
+                              Sửa
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -1341,6 +1474,147 @@ export default function AccountingPage() {
 
       {/* Dialog: Thêm giao dịch (framer-motion) */}
       <Dialog
+        open={isPayrollOpen}
+        onOpenChange={setIsPayrollOpen}
+        title="Chỉnh sửa bảng lương"
+        footer={
+          <>
+            <button
+              onClick={() => setIsPayrollOpen(false)}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={() => {
+                if (selectedStaffId == null) return;
+                const staff = getStaffById(selectedStaffId);
+                if (staff) {
+                  staff.baseSalary =
+                    parseInt(payrollForm.baseSalary.replace(/\D/g, "")) || 0;
+                  (staff as any).hourlyRate =
+                    parseInt(payrollForm.hourlyRate.replace(/\D/g, "")) || 0;
+                  (staff as any).workingDaysPerMonth =
+                    parseInt(
+                      payrollForm.workingDaysPerMonth.replace(/\D/g, "")
+                    ) || 22;
+                }
+                setPayrollOverrides((prev) => ({
+                  ...prev,
+                  [selectedStaffId!]: {
+                    allowances:
+                      parseInt(payrollForm.allowances.replace(/\D/g, "")) || 0,
+                    bonus: parseInt(payrollForm.bonus.replace(/\D/g, "")) || 0,
+                    deductions:
+                      parseInt(payrollForm.deductions.replace(/\D/g, "")) || 0,
+                  },
+                }));
+                setPayrollVersion((v) => v + 1);
+                setIsPayrollOpen(false);
+              }}
+              className="rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:opacity-95"
+            >
+              Lưu
+            </button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Lương cơ bản
+            </label>
+            <input
+              value={payrollForm.baseSalary}
+              onChange={(e) =>
+                setPayrollForm((f) => ({
+                  ...f,
+                  baseSalary: formatNumberVN(e.target.value),
+                }))
+              }
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Hệ số giờ
+            </label>
+            <input
+              value={payrollForm.hourlyRate}
+              onChange={(e) =>
+                setPayrollForm((f) => ({
+                  ...f,
+                  hourlyRate: formatNumberVN(e.target.value),
+                }))
+              }
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Công chuẩn/tháng
+            </label>
+            <input
+              value={payrollForm.workingDaysPerMonth}
+              onChange={(e) =>
+                setPayrollForm((f) => ({
+                  ...f,
+                  workingDaysPerMonth: e.target.value,
+                }))
+              }
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Phụ cấp
+            </label>
+            <input
+              value={payrollForm.allowances}
+              onChange={(e) =>
+                setPayrollForm((f) => ({
+                  ...f,
+                  allowances: formatNumberVN(e.target.value),
+                }))
+              }
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Thưởng
+            </label>
+            <input
+              value={payrollForm.bonus}
+              onChange={(e) =>
+                setPayrollForm((f) => ({
+                  ...f,
+                  bonus: formatNumberVN(e.target.value),
+                }))
+              }
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Khấu trừ
+            </label>
+            <input
+              value={payrollForm.deductions}
+              onChange={(e) =>
+                setPayrollForm((f) => ({
+                  ...f,
+                  deductions: formatNumberVN(e.target.value),
+                }))
+              }
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+      </Dialog>
+      <Dialog
         open={isAddOpen}
         onOpenChange={setIsAddOpen}
         title="Thêm giao dịch mới"
@@ -1353,7 +1627,7 @@ export default function AccountingPage() {
               Hủy
             </button>
             <button
-              onClick={() => setIsAddOpen(false)}
+              onClick={handleAddTransaction}
               className="rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-medium hover:opacity-95"
             >
               Thêm giao dịch
@@ -1383,7 +1657,10 @@ export default function AccountingPage() {
               placeholder="1,000,000"
               value={form.amount}
               onChange={(e) =>
-                setForm((f) => ({ ...f, amount: e.target.value }))
+                setForm((f) => ({
+                  ...f,
+                  amount: formatNumberVN(e.target.value),
+                }))
               }
               className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />

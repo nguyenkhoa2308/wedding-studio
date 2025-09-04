@@ -258,7 +258,7 @@ export default function AppointmentCard({
           {/* Tabs */}
           <div className="flex flex-col gap-4">
             {/* Tabs header with animated pill */}
-            <LayoutGroup id="tabs">
+            <LayoutGroup id={`tabs-${appointment.id}`}>
               <div
                 aria-label="Chi tiết lịch hẹn"
                 className="relative grid grid-cols-3 rounded-2xl p-1.5 bg-gradient-to-r from-blue-50 to-slate-50 border border-blue-100/50 transform-gpu will-change-transform isolate"
@@ -353,7 +353,15 @@ function OverviewPanel({ appointment }: { appointment: Appointment }) {
         <InfoCard
           tone="purple"
           label="Thời gian"
-          value={String(appointment.duration ?? "—")}
+          value={
+            appointment.duration
+              ? typeof appointment.duration === "number"
+                ? `${appointment.duration} giờ`
+                : String(appointment.duration).includes("giờ")
+                ? String(appointment.duration)
+                : `${appointment.duration} giờ`
+              : "—"
+          }
           Icon={Clock}
         />
         <InfoCard

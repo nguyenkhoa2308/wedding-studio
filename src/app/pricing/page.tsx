@@ -22,6 +22,7 @@ import { usePricing } from "@/contexts/PricingContext";
 import { AddServiceDialog } from "./components/dialogs/AddServiceDialog";
 import { EditServiceDialog } from "./components/dialogs/EditServiceDialog";
 import { DeleteServiceDialog } from "./components/dialogs/DeleteServiceDialog";
+import { ViewServiceDialog } from "./components/dialogs/ViewServiceDialog";
 import { AddAdditionalServiceDialog } from "./components/dialogs/AddAdditionalServiceDialog";
 import { EditAdditionalServiceDialog } from "./components/dialogs/EditAdditionalServiceDialog";
 import { DeleteAdditionalServiceDialog } from "./components/dialogs/DeleteAdditionalServiceDialog";
@@ -46,6 +47,7 @@ function ServiceCard({
   onEdit?: () => void;
   onDelete?: () => void;
 }) {
+  const [isViewOpen, setIsViewOpen] = useState(false);
   return (
     <div className="bg-white border border-gray-200 rounded-xl relative">
       <div className="p-4 sm:p-6">
@@ -210,6 +212,7 @@ function ServiceCard({
             <div className="flex justify-end">
               <button
                 type="button"
+                onClick={() => setIsViewOpen(true)}
                 className="inline-flex items-center mobile-button touch-manipulation border border-blue-200 text-blue-700 hover:bg-blue-50 rounded-md px-3 py-2"
               >
                 <Eye className="w-4 h-4 mr-2" aria-hidden="true" />
@@ -219,6 +222,7 @@ function ServiceCard({
           </div>
         </div>
       </div>
+      <ViewServiceDialog open={isViewOpen} onOpenChange={setIsViewOpen} service={service} />
     </div>
   );
 }
